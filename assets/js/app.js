@@ -4,6 +4,29 @@
 (function(){
 'use strict';
 
+const pageLoadStart = performance.now();
+const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function hideLoader(){
+  const loader = document.getElementById('pageLoader');
+  document.body.classList.remove('pre-load');
+  if(loader){
+    loader.classList.add('hide');
+    setTimeout(()=> loader.remove(), 700);
+  }
+}
+if(prefersReducedMotion){
+  hideLoader();
+} else {
+  window.addEventListener('load', ()=>{
+    const elapsed = performance.now() - pageLoadStart;
+    const wait = Math.max(0, 550 - elapsed);
+    setTimeout(hideLoader, wait);
+  });
+  // Safety net in case the load event never fires for some reason
+  setTimeout(hideLoader, 3500);
+}
+
 /* ============================================================
    DATA
    ============================================================ */
@@ -369,10 +392,10 @@ function showView(name){
     observeReveals();
   };
 
-  if(current && current !== target){
+  if(current && current !== target && !prefersReducedMotion){
     window.scrollTo({top:0, behavior:'smooth'});
     current.classList.add('view-leaving');
-    setTimeout(activate, 180);
+    setTimeout(activate, 220);
   } else {
     window.scrollTo({top:0, behavior:'smooth'});
     activate();
@@ -795,8 +818,6 @@ function init(){
 /* ============================================================
    MOTION POLISH: parallax, magnetic buttons, card tilt, ripple
    ============================================================ */
-const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
 function initHeroParallax(){
   if(prefersReducedMotion) return;
   const hero = $('.hero');
