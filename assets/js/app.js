@@ -350,20 +350,33 @@ function flyToCart(sourceEl){
    NAVIGATION
    ============================================================ */
 function showView(name){
-  $all('.view').forEach(v=>v.classList.remove('active'));
   const target = document.getElementById('view-'+name);
-  if(target) target.classList.add('active');
-  $all('[data-nav]').forEach(btn=>{
-    btn.setAttribute('aria-current', btn.dataset.nav===name ? 'true' : 'false');
-  });
-  $('#mobileNav').classList.remove('open');
-  $('#burgerBtn').classList.remove('open');
-  $('#burgerBtn').setAttribute('aria-expanded','false');
-  window.scrollTo({top:0, behavior:'smooth'});
-  if(name==='cart') renderCartView();
-  updateCartBadge();
-  history.pushState(null, '', '#'+name);
-  observeReveals();
+  if(!target) return;
+  const current = document.querySelector('.view.active');
+
+  const activate = ()=>{
+    $all('.view').forEach(v=>v.classList.remove('active','view-leaving'));
+    target.classList.add('active');
+    $all('[data-nav]').forEach(btn=>{
+      btn.setAttribute('aria-current', btn.dataset.nav===name ? 'true' : 'false');
+    });
+    $('#mobileNav').classList.remove('open');
+    $('#burgerBtn').classList.remove('open');
+    $('#burgerBtn').setAttribute('aria-expanded','false');
+    if(name==='cart') renderCartView();
+    updateCartBadge();
+    history.pushState(null, '', '#'+name);
+    observeReveals();
+  };
+
+  if(current && current !== target){
+    window.scrollTo({top:0, behavior:'smooth'});
+    current.classList.add('view-leaving');
+    setTimeout(activate, 180);
+  } else {
+    window.scrollTo({top:0, behavior:'smooth'});
+    activate();
+  }
 }
 
 function bindNav(scope){
@@ -769,9 +782,114 @@ function init(){
   animateCounters();
   observeReveals();
 
+  initHeroParallax();
+  initMagneticButtons();
+  initCardTilt();
+  initRipples();
+
   const initialHash = location.hash.replace('#','');
   const validViews = ['home','about','services','store','training','contact','cart'];
   showView(validViews.includes(initialHash) ? initialHash : 'home');
+}
+
+/* ============================================================
+   MOTION POLISH: parallax, magnetic buttons, card tilt, ripple
+   ============================================================ */
+const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function initHeroParallax(){
+  if(prefersReducedMotion) return;
+  const hero = $('.hero');
+  const collage = $('#heroCollage');
+  const spotlight = $('#heroSpotlight');
+  if(!hero || !collage) return;
+  const photos = $all('.collage-photo[data-depth]', collage);
+  let raf = null, pending = null;
+
+  hero.addEventListener('mousemove', (e)=>{
+    const r = hero.getBoundingClientRect();
+    if(spotlight){
+      spotlight.style.left = (e.clientX - r.left) + 'px';
+      spotlight.style.top = (e.clientY - r.top) + 'px';
+    }
+    if(window.innerWidth < 921) return;
+    pending = {
+      x: (e.clientX - r.left) / r.width - 0.5,
+      y: (e.clientY - r.top) / r.height - 0.5
+    };
+    if(!raf){
+      raf = requestAnimationFrame(()=>{
+        photos.forEach(p=>{
+          const depth = parseFloat(p.dataset.depth) || 20;
+          p.style.transform = `translate(${(pending.x*depth).toFixed(1)}px, ${(pending.y*depth).toFixed(1)}px)`;
+        });
+        raf = null;
+      });
+    }
+  });
+  hero.addEventListener('mouseleave', ()=>{
+    photos.forEach(p=> p.style.transform = '');
+  });
+}
+
+function initMagneticButtons(){
+  if(prefersReducedMotion) return;
+  $all('.magnetic').forEach(btn=>{
+    btn.addEventListener('mousemove', (e)=>{
+      const r = btn.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      btn.style.transform = `translate(${(x*10).toFixed(1)}px, ${(y*10-2).toFixed(1)}px)`;
+    });
+    btn.addEventListener('mouseleave', ()=>{ btn.style.transform = ''; });
+  });
+}
+
+function initCardTilt(){
+  if(prefersReducedMotion) return;
+  const groups = [
+    {containers:['#homeServiceGrid','#servicesFullGrid'], card:'.svc-card'},
+    {containers:['#homeProductGrid','#storeGrid'], card:'.product-card'},
+    {containers:['.why-grid'], card:'.why-card'}
+  ];
+  groups.forEach(g=>{
+    g.containers.forEach(sel=>{
+      const container = $(sel);
+      if(!container) return;
+      container.addEventListener('mousemove', (e)=>{
+        const card = e.target.closest(g.card);
+        if(!card || !container.contains(card)) return;
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transition = 'transform .08s linear';
+        card.style.transform = `perspective(800px) rotateX(${(-py*7).toFixed(2)}deg) rotateY(${(px*7).toFixed(2)}deg) translateY(-6px) translateZ(0)`;
+      });
+      container.addEventListener('mouseout', (e)=>{
+        const card = e.target.closest(g.card);
+        if(card && (!e.relatedTarget || !card.contains(e.relatedTarget))){
+          card.style.transition = 'transform .5s cubic-bezier(.16,1,.3,1)';
+          card.style.transform = '';
+        }
+      });
+    });
+  });
+}
+
+function initRipples(){
+  document.body.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.btn');
+    if(!btn) return;
+    const r = btn.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    const size = Math.max(r.width, r.height) * 1.6;
+    ripple.className = 'btn-ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - r.left - size/2) + 'px';
+    ripple.style.top = (e.clientY - r.top - size/2) + 'px';
+    btn.appendChild(ripple);
+    ripple.addEventListener('animationend', ()=> ripple.remove());
+  });
 }
 
 function animateCounters(){
