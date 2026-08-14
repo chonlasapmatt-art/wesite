@@ -10,30 +10,30 @@
 const IMG = 'assets/img/';
 
 const SERVICES = [
-  {num:'01', title:'Network Infrastructure & Design', icon:'net', items:[
+  {num:'01', title:'Network Infrastructure & Design', icon:'net', img:IMG+'service-network.jpg', items:[
     'ออกแบบและวางระบบเครือข่าย (LAN/Fiber Optic)',
     'ติดตั้งและบริหารจัดการ Server (Windows/Linux)',
     'ระบบความปลอดภัยเครือข่าย (Network Security & Firewall)',
     'ระบบห้องเรียนอัจฉริยะครบวงจร (Smart Classroom Solution)',
     'ห้องปฏิบัติการทางภาษาอัจฉริยะ (Digital Language Lab)'
   ]},
-  {num:'02', title:'Software & Application Development', icon:'code', items:[
+  {num:'02', title:'Software & Application Development', icon:'code', img:IMG+'service-software.jpg', items:[
     'พัฒนาโปรแกรมคอมพิวเตอร์ตามความต้องการ (Custom Software)',
     'พัฒนา Mobile & Web Application',
     'เชื่อมต่อระบบปฏิบัติการ (System Integration)',
     'แพลตฟอร์มบริหารจัดการการเรียนรู้ (LMS)'
   ]},
-  {num:'03', title:'IT Maintenance Service', icon:'wrench', items:[
+  {num:'03', title:'IT Maintenance Service', icon:'wrench', img:IMG+'service-maintenance.jpg', items:[
     'บริการดูแลรักษารายเดือน-รายปี (Preventive Maintenance)',
     'บริการกู้คืนข้อมูล (Data Recovery) และตรวจเช็กไวรัส'
   ]},
-  {num:'04', title:'Hardware & Software Supply', icon:'box', items:[
+  {num:'04', title:'Hardware & Software Supply', icon:'box', img:IMG+'service-hardware.jpg', items:[
     'จำหน่ายอุปกรณ์คอมพิวเตอร์และซอฟต์แวร์ลิขสิทธิ์แท้',
     'จอภาพระบบอัจฉริยะ (AI-Powered Interactive Smart Display)',
     'สื่อมัลติมีเดียระดับปฐมวัยและประถมศึกษา (Edutainment)',
     'สื่อพัฒนาทักษะภาษาอังกฤษอ้างอิงมาตรฐาน CEFR ครบทุกระดับ'
   ]},
-  {num:'05', title:'ICT Training & Seminar', icon:'grad', items:[
+  {num:'05', title:'ICT Training & Seminar', icon:'grad', img:IMG+'service-training.jpg', items:[
     'อบรมการใช้งานระบบและซอฟต์แวร์สำนักงาน',
     'อบรมการใช้งานห้องเรียน/ห้องปฏิบัติการทางภาษาอัจฉริยะ',
     'อบรมหลักสูตรภาษาอังกฤษตามมาตรฐาน CEFR สำหรับครู',
@@ -50,18 +50,18 @@ const ICONS = {
 };
 
 const PRODUCTS = [
-  {id:'p1', level:'ปฐมวัย', name:'โปรแกรมพัฒนาทักษะกระบวนการคิดเสริมเชาวน์ปัญญา', desc:'สื่อมัลติมีเดียเสริมกระบวนการคิด การสังเกต การจำแนก และความสัมพันธ์เชิงมิติ', price:2900, c1:'#3E6B8C', c2:'#1E3E73'},
-  {id:'p2', level:'ปฐมวัย', name:'โปรแกรมพัฒนาทักษะทางคณิตศาสตร์', desc:'สอนความสัมพันธ์ทางคณิต การนับจำนวน เรขาคณิต การวัด การชั่ง การตวง', price:2900, c1:'#C98A27', c2:'#8C6A3E'},
-  {id:'p3', level:'ปฐมวัย', name:'โปรแกรมพัฒนาทักษะทางวิทยาศาสตร์', desc:'เนื้อหาสอดคล้องเรื่องราวเกี่ยวกับตัวเด็ก บุคคล สถานที่ และธรรมชาติรอบตัว', price:2900, c1:'#3E8C5D', c2:'#215C39'},
-  {id:'p4', level:'ปฐมวัย', name:'โปรแกรมพัฒนาทักษะการใช้ภาษา', desc:'ฝึกพยัญชนะไทย สระ การประสมคำ และมาตราตัวสะกด ผ่านกระดานอัจฉริยะ', price:2500, c1:'#6A3E8C', c2:'#402459'},
-  {id:'p5', level:'ปฐมวัย', name:'สื่อการเรียนรู้ระดับปฐมวัย (CAI)', desc:'อิงหลักสูตรปฐมวัย พ.ศ. 2560 ครบ 4 สาระการเรียนรู้', price:3200, c1:'#16305C', c2:'#0E2144'},
-  {id:'p6', level:'ปฐมวัย', name:'สื่อมัลติมีเดีย "อาเซียนน่ารู้"', desc:'ความรู้เกี่ยวกับ 10 ประเทศสมาชิกอาเซียน ธงชาติ เมืองหลวง วัฒนธรรม', price:2200, c1:'#8C3E3E', c2:'#5C2323'},
+  {id:'p1', level:'ปฐมวัย', name:'โปรแกรมพัฒนาทักษะกระบวนการคิดเสริมเชาวน์ปัญญา', desc:'สื่อมัลติมีเดียเสริมกระบวนการคิด การสังเกต การจำแนก และความสัมพันธ์เชิงมิติ', price:2900, c1:'#3E6B8C', c2:'#1E3E73', img:IMG+'product-p1.jpg'},
+  {id:'p2', level:'ปฐมวัย', name:'โปรแกรมพัฒนาทักษะทางคณิตศาสตร์', desc:'สอนความสัมพันธ์ทางคณิต การนับจำนวน เรขาคณิต การวัด การชั่ง การตวง', price:2900, c1:'#C98A27', c2:'#8C6A3E', img:IMG+'product-p2.jpg'},
+  {id:'p3', level:'ปฐมวัย', name:'โปรแกรมพัฒนาทักษะทางวิทยาศาสตร์', desc:'เนื้อหาสอดคล้องเรื่องราวเกี่ยวกับตัวเด็ก บุคคล สถานที่ และธรรมชาติรอบตัว', price:2900, c1:'#3E8C5D', c2:'#215C39', img:IMG+'product-p3.jpg'},
+  {id:'p4', level:'ปฐมวัย', name:'โปรแกรมพัฒนาทักษะการใช้ภาษา', desc:'ฝึกพยัญชนะไทย สระ การประสมคำ และมาตราตัวสะกด ผ่านกระดานอัจฉริยะ', price:2500, c1:'#6A3E8C', c2:'#402459', img:IMG+'product-p4.jpg'},
+  {id:'p5', level:'ปฐมวัย', name:'สื่อการเรียนรู้ระดับปฐมวัย (CAI)', desc:'อิงหลักสูตรปฐมวัย พ.ศ. 2560 ครบ 4 สาระการเรียนรู้', price:3200, c1:'#16305C', c2:'#0E2144', img:IMG+'product-p5.jpg'},
+  {id:'p6', level:'ปฐมวัย', name:'สื่อมัลติมีเดีย "อาเซียนน่ารู้"', desc:'ความรู้เกี่ยวกับ 10 ประเทศสมาชิกอาเซียน ธงชาติ เมืองหลวง วัฒนธรรม', price:2200, c1:'#8C3E3E', c2:'#5C2323', img:IMG+'product-p6.jpg'},
   {id:'p7', level:'ปฐมวัย', name:'สื่อโฟนิคส์ (Phonics Hero)', desc:'พัฒนาทักษะการอ่านออกเสียงและสะกดคำภาษาอังกฤษแบบโฟนิคส์', price:3500, c1:'#C9A227', c2:'#8a6d16', img:IMG+'product-phonicshero.jpg'},
   {id:'p8', level:'ปฐมวัย', name:'Picaro English', desc:'หลักสูตรภาษาอังกฤษผ่านกิจกรรมเกมส์ อ้างอิงมาตรฐาน CEFR', price:4900, c1:'#3E6B8C', c2:'#16305C', img:IMG+'product-picaro.jpg'},
   {id:'p9', level:'ประถมศึกษา', name:'Digital Library@School (DLS)', desc:'บทเรียนคอมพิวเตอร์ช่วยสอนครบทุกกลุ่มสาระ อิงหลักสูตรแกนกลาง', price:5900, c1:'#16305C', c2:'#0E2144', img:IMG+'product-dls.jpg'},
-  {id:'p10', level:'ประถมศึกษา', name:'DLS คณิตศาสตร์', desc:'สื่อพัฒนาทักษะคณิตศาสตร์ระดับประถมศึกษา ผ่านภาพเคลื่อนไหวและแบบโต้ตอบ', price:3800, c1:'#C98A27', c2:'#8C6A3E'},
-  {id:'p11', level:'ประถมศึกษา', name:'DLS วิทยาศาสตร์', desc:'สื่อพัฒนาทักษะวิทยาศาสตร์ระดับประถมศึกษา เข้าใจง่ายด้วยภาพและเสียง', price:3800, c1:'#3E8C5D', c2:'#215C39'},
-  {id:'p12', level:'ประถมศึกษา', name:'DLS ภาษาไทย', desc:'สื่อพัฒนาทักษะภาษาไทยระดับประถมศึกษา ผ่านเกมและแบบทดสอบ', price:3800, c1:'#6A3E8C', c2:'#402459'},
+  {id:'p10', level:'ประถมศึกษา', name:'DLS คณิตศาสตร์', desc:'สื่อพัฒนาทักษะคณิตศาสตร์ระดับประถมศึกษา ผ่านภาพเคลื่อนไหวและแบบโต้ตอบ', price:3800, c1:'#C98A27', c2:'#8C6A3E', img:IMG+'product-p10.jpg'},
+  {id:'p11', level:'ประถมศึกษา', name:'DLS วิทยาศาสตร์', desc:'สื่อพัฒนาทักษะวิทยาศาสตร์ระดับประถมศึกษา เข้าใจง่ายด้วยภาพและเสียง', price:3800, c1:'#3E8C5D', c2:'#215C39', img:IMG+'product-p11.jpg'},
+  {id:'p12', level:'ประถมศึกษา', name:'DLS ภาษาไทย', desc:'สื่อพัฒนาทักษะภาษาไทยระดับประถมศึกษา ผ่านเกมและแบบทดสอบ', price:3800, c1:'#6A3E8C', c2:'#402459', img:IMG+'product-p12.jpg'},
   {id:'p13', level:'มัธยมศึกษา', name:'Vantage Essential English', desc:'หลักสูตรออนไลน์จากอังกฤษ อิง CEFR 6 ระดับ (A1-C1) พร้อม Placement Test', price:6900, c1:'#16305C', c2:'#0E2144', img:IMG+'product-vantage.jpg'},
 ];
 
@@ -112,6 +112,7 @@ function thumbHTML(p, sizeClass){
    ============================================================ */
 function serviceCardHTML(s){
   return `<div class="svc-card" data-nav="services">
+    <div class="svc-photo"><img src="${s.img}" alt="" loading="lazy"></div>
     <div class="svc-icon">${ICONS[s.icon]}</div>
     <div class="svc-num">${s.num}</div>
     <h3>${s.title}</h3>
