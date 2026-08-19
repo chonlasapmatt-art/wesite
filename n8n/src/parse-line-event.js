@@ -6,9 +6,25 @@
    - รองรับหลาย event ใน 1 request
    - ข้าม event ที่ไม่ใช่ข้อความตัวอักษร (สติกเกอร์ รูป ไลฟ์ ฯลฯ)
    - คืน [] เมื่อเป็น verify request ของ LINE  -> workflow จบเงียบ ๆ
+
+   หมายเหตุ: โหนดนี้รับ input มาจาก Google Sheets (เราดึงชีตก่อนเพื่ออ่านครั้งเดียว
+   ต่อ 1 request) จึงต้องย้อนไปหยิบ payload จากโหนดต้นทางโดยตรง ห้ามใช้ $input
    ============================================================ */
 
-const raw = $input.first().json || {};
+/** หยิบ payload จากต้นทาง: Webhook จริง หรือโหนดทดสอบเมื่อกด Test workflow */
+function sourcePayload() {
+  for (const node of ['Webhook', '🧪 ข้อความทดสอบ']) {
+    try {
+      const j = $(node).first().json;
+      if (j && Object.keys(j).length) return j;
+    } catch (e) {
+      // โหนดนั้นไม่ได้ทำงานในรอบนี้ ลองตัวถัดไป
+    }
+  }
+  return $input.first().json || {};
+}
+
+const raw = sourcePayload();
 const body = raw.body || raw;
 const events = Array.isArray(body.events) ? body.events : [];
 

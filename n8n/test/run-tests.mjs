@@ -4,11 +4,14 @@
  * ใช้: node test/run-tests.mjs
  */
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
+// build ใหม่ทุกครั้ง เพื่อให้แน่ใจว่ากำลังทดสอบโค้ดล่าสุดใน src/ จริง ๆ
+execFileSync('node', [join(ROOT, 'build.mjs')], { stdio: 'inherit' });
 const wf = JSON.parse(readFileSync(join(ROOT, 'line-oa-ai-agent.json'), 'utf8'));
 const codeOf = (name) => wf.nodes.find((n) => n.name === name).parameters.jsCode;
 
@@ -118,22 +121,35 @@ console.log('\n[6] event พิเศษ');
 check('เพิ่มเพื่อนใหม่ -> ข้อความต้อนรับ', match('__FOLLOW__').matchType === 'greeting');
 check('ส่งสติกเกอร์ -> ขอให้พิมพ์ข้อความ', match('__NON_TEXT__').matchType === 'non_text');
 
-console.log('\n[7] Parse LINE Event');
+console.log('\n[7] Parse LINE Event (ต่อสายตามผังจริง: input = แถวจากชีต)');
+// ในผังจริงโหนดนี้รับ input มาจาก Google Sheets จึงต้องย้อนไปอ่าน payload จาก Webhook
 const parsed = runNode(codeOf('Parse LINE Event'), {
-  input: [{ json: { body: { events: [
-    { type: 'message', replyToken: 'r1', source: { userId: 'U1', type: 'user' }, message: { type: 'text', text: ' ราคา ' } },
-    { type: 'message', replyToken: 'r2', source: { userId: 'U2', type: 'user' }, message: { type: 'sticker' } },
-    { type: 'follow', replyToken: 'r3', source: { userId: 'U3', type: 'user' } },
-    { type: 'unsend', replyToken: 'r4', source: { userId: 'U4' } },
-  ] } } }],
+  input: asItems(FAQ), // แถวจากชีต — ไม่ใช่ข้อความของลูกค้า
+  nodes: {
+    Webhook: [{ json: { body: { events: [
+      { type: 'message', replyToken: 'r1', source: { userId: 'U1', type: 'user' }, message: { type: 'text', text: ' ราคา ' } },
+      { type: 'message', replyToken: 'r2', source: { userId: 'U2', type: 'user' }, message: { type: 'sticker' } },
+      { type: 'follow', replyToken: 'r3', source: { userId: 'U3', type: 'user' } },
+      { type: 'unsend', replyToken: 'r4', source: { userId: 'U4' } },
+    ] } } }],
+  },
 });
-check('แยก event ได้ 3 รายการ (ข้อความ/สติกเกอร์/เพิ่มเพื่อน)', parsed.length === 3, String(parsed.length));
+check('อ่าน payload จากโหนด Webhook ไม่ใช่จาก input ที่เป็นแถวชีต', parsed.length === 3, String(parsed.length));
 check('ตัดช่องว่างหัวท้ายข้อความ', parsed[0].json.text === 'ราคา');
 check('อ่าน userId และ replyToken ถูกต้อง', parsed[0].json.userId === 'U1' && parsed[0].json.replyToken === 'r1');
-const verify = runNode(codeOf('Parse LINE Event'), { input: [{ json: { body: { events: [] } } }] });
+check('ข้าม event ที่ไม่เกี่ยว (unsend)', !parsed.some((p) => p.json.replyToken === 'r4'));
+
+const verify = runNode(codeOf('Parse LINE Event'), {
+  input: asItems(FAQ),
+  nodes: { Webhook: [{ json: { body: { events: [] } } }] },
+});
 check('LINE verify request -> ไม่ทำอะไรต่อ', verify.length === 0);
-const legacy = runNode(codeOf('Parse LINE Event'), { input: [{ json: { body: { message: 'ราคา' } } }] });
-check('payload ทดสอบแบบง่าย { message } ยังใช้ได้', legacy.length === 1 && legacy[0].json.text === 'ราคา');
+
+const manual = runNode(codeOf('Parse LINE Event'), {
+  input: asItems(FAQ),
+  nodes: { '🧪 ข้อความทดสอบ': [{ json: { message: 'ราคะ', userId: 'TEST-USER', replyToken: '' } }] },
+});
+check('กด Test workflow (ไม่มี Webhook) -> ใช้ข้อความทดสอบแทน', manual.length === 1 && manual[0].json.text === 'ราคะ');
 
 console.log('\n[8] Build LINE Reply');
 const replyOf = (cur, matchJson) =>
@@ -186,6 +202,39 @@ const fq = matchWithKnowledge('อยากทราบราคะครับ 
 const fBlock = fq.systemPrompt.split('=== FAQ')[1];
 check('คำถามยาวเรื่องราคา -> FAQ "ราคา" ถูกยกขึ้นเป็นข้อ 1', fBlock.includes('1. [ราคา]'), fBlock.trim().split('\n')[1]);
 check('คำถามยาวที่ต้องอธิบาย -> ส่งให้ AI ไม่ตอบ FAQ สั้น ๆ', fq.route === 'ai', fq.route);
+
+console.log('\n[11] เดินครบทั้งผังจาก payload จริงของ LINE');
+function endToEnd(text) {
+  const webhookBody = { body: { events: [
+    { type: 'message', replyToken: 'REPLY-TOKEN', source: { userId: 'Uabc', type: 'user' }, message: { type: 'text', text } },
+  ] } };
+  // 1) Webhook -> Get FAQ -> Get Knowledge -> Parse LINE Event
+  const events = runNode(codeOf('Parse LINE Event'), {
+    input: asItems(FAQ),
+    nodes: { Webhook: [{ json: webhookBody }] },
+  });
+  // 2) Parse -> Smart Thai Matcher
+  const matched = runNode(codeOf('Smart Thai Matcher'), {
+    input: events,
+    nodes: { 'Get FAQ': asItems(FAQ), 'Get Knowledge': asItems(KNOWLEDGE) },
+  })[0].json;
+  // 3) IF -> (AI Agent) -> Build LINE Reply
+  const agentOut = matched.route === 'ai' ? { output: 'คำตอบจาก AI (จำลอง)' } : matched;
+  const reply = runNode(codeOf('Build LINE Reply'), {
+    json: agentOut,
+    nodes: { 'Smart Thai Matcher': [{ json: matched }] },
+  }).json;
+  return { matched, reply };
+}
+
+const e1 = endToEnd('ราคะ');
+check('เส้นทางตอบจากชีต: ได้ข้อความจริงจากคอลัมน์ answer', e1.reply.body.messages[0].text.includes('2,200 บาท'), e1.reply.body.messages[0].text);
+check('เส้นทางตอบจากชีต: replyToken ส่งถึงปลายทางครบ', e1.reply.body.replyToken === 'REPLY-TOKEN');
+
+const e2 = endToEnd('มีสื่อสำหรับ ป.4 ไหมครับ แล้วติดตั้งให้ด้วยหรือเปล่า');
+check('เส้นทาง AI: ถูกส่งให้ AI ตอบ', e2.matched.route === 'ai', e2.matched.route);
+check('เส้นทาง AI: prompt มีข้อมูลบริษัทครบ', e2.matched.systemPrompt.includes('Digital Library@School'));
+check('เส้นทาง AI: คำตอบถูกส่งกลับเป็น payload ของ LINE', e2.reply.body.messages[0].text === 'คำตอบจาก AI (จำลอง)' && e2.reply.body.replyToken === 'REPLY-TOKEN');
 
 console.log(`\n=== ผ่าน ${pass} / ล้มเหลว ${fail} ===\n`);
 process.exit(fail ? 1 : 0);

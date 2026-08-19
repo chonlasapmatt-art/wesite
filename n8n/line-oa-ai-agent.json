@@ -2,6 +2,54 @@
   "name": "IWA LINE OA — AI FAQ Agent",
   "nodes": [
     {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -900,
+        300
+      ],
+      "id": "b1a1c0de-0011-4000-8000-000000000011",
+      "name": "ทดสอบด้วยตนเอง"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "message",
+              "value": "ราคะเท่าไหร่ครับ",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "userId",
+              "value": "TEST-USER",
+              "type": "string"
+            },
+            {
+              "id": "a3",
+              "name": "replyToken",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -680,
+        300
+      ],
+      "id": "b1a1c0de-0012-4000-8000-000000000012",
+      "name": "🧪 ข้อความทดสอบ",
+      "notesInFlow": true,
+      "notes": "พิมพ์คำถามที่อยากลองตรงนี้ แล้วกด Test workflow — ไม่ส่งเข้า LINE จริง"
+    },
+    {
       "parameters": {
         "httpMethod": "POST",
         "path": "lineoa_chatbot",
@@ -19,7 +67,7 @@
     },
     {
       "parameters": {
-        "jsCode": "/* ============================================================\n   1) Parse LINE Event\n   ------------------------------------------------------------\n   ดึงข้อความจริงออกจาก payload ของ LINE Messaging API\n   - LINE ส่งมาที่ body.events[] (ไม่ใช่ body.message)\n   - รองรับหลาย event ใน 1 request\n   - ข้าม event ที่ไม่ใช่ข้อความตัวอักษร (สติกเกอร์ รูป ไลฟ์ ฯลฯ)\n   - คืน [] เมื่อเป็น verify request ของ LINE  -> workflow จบเงียบ ๆ\n   ============================================================ */\n\nconst raw = $input.first().json || {};\nconst body = raw.body || raw;\nconst events = Array.isArray(body.events) ? body.events : [];\n\nconst out = [];\n\nfor (const ev of events) {\n  if (!ev || !ev.replyToken) continue;\n\n  const source = ev.source || {};\n  const userId = source.userId || source.groupId || source.roomId || '';\n\n  // ข้อความตัวอักษรเท่านั้น\n  if (ev.type === 'message' && ev.message && ev.message.type === 'text') {\n    const text = String(ev.message.text || '').trim();\n    if (!text) continue;\n    out.push({\n      json: {\n        userId,\n        replyToken: ev.replyToken,\n        text,\n        messageType: 'text',\n        sourceType: source.type || 'user',\n        timestamp: ev.timestamp || Date.now(),\n      },\n    });\n    continue;\n  }\n\n  // ผู้ใช้เพิ่งกดเพิ่มเพื่อน -> ทักทายและแนะนำวิธีใช้\n  if (ev.type === 'follow') {\n    out.push({\n      json: {\n        userId,\n        replyToken: ev.replyToken,\n        text: '__FOLLOW__',\n        messageType: 'follow',\n        sourceType: source.type || 'user',\n        timestamp: ev.timestamp || Date.now(),\n      },\n    });\n    continue;\n  }\n\n  // สติกเกอร์/รูป/ไฟล์ -> ตอบกลับสั้น ๆ ว่าให้พิมพ์เป็นข้อความ\n  if (ev.type === 'message') {\n    out.push({\n      json: {\n        userId,\n        replyToken: ev.replyToken,\n        text: '__NON_TEXT__',\n        messageType: (ev.message && ev.message.type) || 'unknown',\n        sourceType: source.type || 'user',\n        timestamp: ev.timestamp || Date.now(),\n      },\n    });\n  }\n}\n\n// เผื่อกรณีทดสอบด้วย payload ง่าย ๆ เช่น { \"message\": \"ราคา\" }\nif (out.length === 0 && typeof body.message === 'string' && body.message.trim()) {\n  out.push({\n    json: {\n      userId: body.userId || 'test-user',\n      replyToken: body.replyToken || '',\n      text: body.message.trim(),\n      messageType: 'text',\n      sourceType: 'user',\n      timestamp: Date.now(),\n    },\n  });\n}\n\nreturn out;\n"
+        "jsCode": "/* ============================================================\n   1) Parse LINE Event\n   ------------------------------------------------------------\n   ดึงข้อความจริงออกจาก payload ของ LINE Messaging API\n   - LINE ส่งมาที่ body.events[] (ไม่ใช่ body.message)\n   - รองรับหลาย event ใน 1 request\n   - ข้าม event ที่ไม่ใช่ข้อความตัวอักษร (สติกเกอร์ รูป ไลฟ์ ฯลฯ)\n   - คืน [] เมื่อเป็น verify request ของ LINE  -> workflow จบเงียบ ๆ\n\n   หมายเหตุ: โหนดนี้รับ input มาจาก Google Sheets (เราดึงชีตก่อนเพื่ออ่านครั้งเดียว\n   ต่อ 1 request) จึงต้องย้อนไปหยิบ payload จากโหนดต้นทางโดยตรง ห้ามใช้ $input\n   ============================================================ */\n\n/** หยิบ payload จากต้นทาง: Webhook จริง หรือโหนดทดสอบเมื่อกด Test workflow */\nfunction sourcePayload() {\n  for (const node of ['Webhook', '🧪 ข้อความทดสอบ']) {\n    try {\n      const j = $(node).first().json;\n      if (j && Object.keys(j).length) return j;\n    } catch (e) {\n      // โหนดนั้นไม่ได้ทำงานในรอบนี้ ลองตัวถัดไป\n    }\n  }\n  return $input.first().json || {};\n}\n\nconst raw = sourcePayload();\nconst body = raw.body || raw;\nconst events = Array.isArray(body.events) ? body.events : [];\n\nconst out = [];\n\nfor (const ev of events) {\n  if (!ev || !ev.replyToken) continue;\n\n  const source = ev.source || {};\n  const userId = source.userId || source.groupId || source.roomId || '';\n\n  // ข้อความตัวอักษรเท่านั้น\n  if (ev.type === 'message' && ev.message && ev.message.type === 'text') {\n    const text = String(ev.message.text || '').trim();\n    if (!text) continue;\n    out.push({\n      json: {\n        userId,\n        replyToken: ev.replyToken,\n        text,\n        messageType: 'text',\n        sourceType: source.type || 'user',\n        timestamp: ev.timestamp || Date.now(),\n      },\n    });\n    continue;\n  }\n\n  // ผู้ใช้เพิ่งกดเพิ่มเพื่อน -> ทักทายและแนะนำวิธีใช้\n  if (ev.type === 'follow') {\n    out.push({\n      json: {\n        userId,\n        replyToken: ev.replyToken,\n        text: '__FOLLOW__',\n        messageType: 'follow',\n        sourceType: source.type || 'user',\n        timestamp: ev.timestamp || Date.now(),\n      },\n    });\n    continue;\n  }\n\n  // สติกเกอร์/รูป/ไฟล์ -> ตอบกลับสั้น ๆ ว่าให้พิมพ์เป็นข้อความ\n  if (ev.type === 'message') {\n    out.push({\n      json: {\n        userId,\n        replyToken: ev.replyToken,\n        text: '__NON_TEXT__',\n        messageType: (ev.message && ev.message.type) || 'unknown',\n        sourceType: source.type || 'user',\n        timestamp: ev.timestamp || Date.now(),\n      },\n    });\n  }\n}\n\n// เผื่อกรณีทดสอบด้วย payload ง่าย ๆ เช่น { \"message\": \"ราคา\" }\nif (out.length === 0 && typeof body.message === 'string' && body.message.trim()) {\n  out.push({\n    json: {\n      userId: body.userId || 'test-user',\n      replyToken: body.replyToken || '',\n      text: body.message.trim(),\n      messageType: 'text',\n      sourceType: 'user',\n      timestamp: Date.now(),\n    },\n  });\n}\n\nreturn out;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -246,6 +294,43 @@
     },
     {
       "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-reply-token",
+              "leftValue": "={{ $json.replyToken }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1160,
+        0
+      ],
+      "id": "b1a1c0de-0013-4000-8000-000000000013",
+      "name": "ส่งเข้า LINE จริงไหม?",
+      "notesInFlow": true,
+      "notes": "ไม่มี replyToken = กำลังทดสอบ จึงไม่ยิงเข้า LINE"
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "https://api.line.me/v2/bot/message/reply",
         "authentication": "genericCredentialType",
@@ -258,7 +343,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        1180,
+        1380,
         0
       ],
       "id": "16560780-0089-48c2-9edd-8d8066782e72",
@@ -374,7 +459,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1400,
+        1600,
         0
       ],
       "id": "b1a1c0de-0010-4000-8000-000000000010",
@@ -474,6 +559,28 @@
   "pinData": {},
   "connections": {
     "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get FAQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ทดสอบด้วยตนเอง": {
+      "main": [
+        [
+          {
+            "node": "🧪 ข้อความทดสอบ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧪 ข้อความทดสอบ": {
       "main": [
         [
           {
@@ -588,11 +695,23 @@
       "main": [
         [
           {
-            "node": "Reply to LINE",
+            "node": "ส่งเข้า LINE จริงไหม?",
             "type": "main",
             "index": 0
           }
         ]
+      ]
+    },
+    "ส่งเข้า LINE จริงไหม?": {
+      "main": [
+        [
+          {
+            "node": "Reply to LINE",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
       ]
     },
     "Reply to LINE": {

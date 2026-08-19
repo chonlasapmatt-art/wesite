@@ -31,7 +31,7 @@
 
 ## ตัวอย่างการจับคำที่พิมพ์ผิด
 
-ทดสอบจริงด้วย `node test/run-tests.mjs` (ผ่าน 44/44):
+ทดสอบจริงด้วย `node test/run-tests.mjs` (ผ่าน 50/50):
 
 | ลูกค้าพิมพ์ | ระบบเข้าใจว่า | ความมั่นใจ |
 |---|---|---|
@@ -69,18 +69,22 @@ AI จะเดาเจตนาลูกค้าเองอีกชั้�
 ## ลำดับการทำงาน
 
 ```
-Webhook (LINE)
-   └─ Get FAQ ────────► Get Knowledge ────────► Parse LINE Event
-                                                     ├─► Show Typing  (แสดง "กำลังพิมพ์" — ทางตัน ล้มเหลวได้)
-                                                     └─► Smart Thai Matcher
+Webhook (LINE) ──┐
+                 ├─► Get FAQ ─► Get Knowledge ─► Parse LINE Event
+🧪 ข้อความทดสอบ ──┘                                    ├─► Show Typing   (แสดง "กำลังพิมพ์" — ทางตัน ล้มเหลวได้)
+   (Manual Trigger)                                  └─► Smart Thai Matcher
                                                               └─► มั่นใจพอไหม?
-                                                                   ├─ ใช่ ──────────────► Build LINE Reply
-                                                                   └─ ไม่ ─► AI Agent ──► Build LINE Reply
-                                                                                              └─► Reply to LINE ─► Log to Sheet
+                                                                   ├─ ใช่ ─────────────► Build LINE Reply
+                                                                   └─ ไม่ ─► AI Agent ─► Build LINE Reply
+                                                                                              └─► ส่งเข้า LINE จริงไหม?
+                                                                                                    └─ ใช่ ─► Reply to LINE ─► Log to Sheet
 ```
 
 ดึงข้อมูลจากชีตก่อนแล้วค่อยแตกเป็นรายข้อความ ทำให้อ่านชีตครั้งเดียวต่อ 1 request
 และตอบได้ครบทุกข้อความแม้ LINE ส่งหลาย event มาพร้อมกัน
+
+โหนด `Parse LINE Event` จึงต้องย้อนไปหยิบ payload จากโหนด `Webhook` โดยตรง (ไม่ใช่จาก `$input`
+ซึ่งตอนนั้นเป็นแถวข้อมูลจากชีตไปแล้ว) — มีเคสทดสอบล็อกไว้ในหมวด `[7]` กันแก้ผังแล้วพัง
 
 ## โครงสร้างไฟล์
 
@@ -104,7 +108,7 @@ n8n/
 
 ---
 
-## วิธีติดตั้ง (7 ขั้นตอน)
+## วิธีติดตั้ง (8 ขั้นตอน)
 
 ### 1. เตรียม Google Sheets
 
@@ -156,7 +160,21 @@ n8n → **Credentials** → **New** → **Header Auth**
 URL ของ webhook ยังเป็นเส้นทางเดิม (`/webhook/lineoa_chatbot`) จึงไม่ต้องแก้ที่ฝั่ง LINE
 ใน LINE Developers Console ให้เปิด **Use webhook** และปิด **Auto-reply messages** กับ **Greeting messages**
 
-### 7. Activate
+### 7. ทดลองรันก่อนเปิดใช้จริง
+
+ไม่ต้องยิงจาก LINE — เปิดโหนด **🧪 ข้อความทดสอบ** พิมพ์คำถามที่อยากลองในช่อง `message`
+แล้วกด **Test workflow** ที่ด้านล่าง ระบบจะเดินครบทั้งผัง (อ่าน Google Sheets จริง เรียก AI จริง)
+แต่ **จะไม่ยิงเข้า LINE** เพราะโหนด `ส่งเข้า LINE จริงไหม?` เห็นว่าไม่มี `replyToken`
+
+คลิกที่โหนด **Build LINE Reply** เพื่อดูคำตอบที่บอทจะตอบ และดูที่ **Smart Thai Matcher**
+เพื่อดูว่าระบบตีความคำถามเป็นหัวข้อไหน คะแนนเท่าไร (`route`, `matchedKeyword`, `score`)
+
+ถ้าโหนดไหนขึ้นแดง ให้ดูตามนี้
+- **Get FAQ / Get Knowledge** แดง → Google Sheets credential หมดอายุ หรือชื่อชีตไม่ตรง
+- **AI Agent** แดง → ยังไม่ได้ใส่ API key ที่โหนด OpenAI Chat Model หรือเครดิตหมด
+- **Show Typing** แดง → ไม่เป็นไร โหนดนี้ล้มเหลวได้ ไม่กระทบการตอบ (ตอนทดสอบจะแดงเสมอ)
+
+### 8. Activate
 
 กด **Active** ที่มุมขวาบนของ workflow แล้วทดลองทักบอทใน LINE
 
@@ -183,9 +201,11 @@ URL ของ webhook ยังเป็นเส้นทางเดิม (`/
 
 ```bash
 cd n8n
-node build.mjs          # สร้าง line-oa-ai-agent.json ใหม่
-node test/run-tests.mjs # รันชุดทดสอบทั้งหมด (ไม่ต้องต่อ n8n / ไม่เสียค่า API)
+node test/run-tests.mjs   # build ใหม่ให้อัตโนมัติ แล้วรันทดสอบทั้งหมด
 ```
+
+ชุดทดสอบครอบคลุมตั้งแต่ payload จริงของ LINE → แยก event → จับคู่คำ → เลือกเส้นทาง →
+ประกอบข้อความตอบกลับ โดยไม่ต้องต่อ n8n และไม่เสียค่า API
 
 เพิ่มเคสทดสอบคำที่ลูกค้าพิมพ์ผิดบ่อย ๆ ได้ในหมวด `[2]` ของ `test/run-tests.mjs`
 เพื่อยืนยันว่าปรับค่าแล้วไม่ทำให้เคสเดิมพัง
@@ -200,3 +220,13 @@ node test/run-tests.mjs # รันชุดทดสอบทั้งหมด
 - โหนด **Show Typing** ทำให้ LINE แสดง "กำลังพิมพ์..." ระหว่างรอ AI (ใช้ได้เฉพาะแชท 1:1)
 - `replyToken` ของ LINE มีอายุจำกัด ถ้า AI ตอบช้ากว่านั้นจะส่งไม่สำเร็จ — ถ้าเจอบ่อย ให้ลด `maxTokens`
   ที่โหนด OpenAI Chat Model หรือเปลี่ยนไปใช้โมเดลที่เร็วกว่า
+
+---
+
+## ความต้องการของระบบ
+
+- n8n เวอร์ชัน 1.82 ขึ้นไป (โหนด AI Agent typeVersion 2)
+- Node.js 18 ขึ้นไป สำหรับรัน `build.mjs` และชุดทดสอบ
+- บัญชี Google ที่เข้าถึงสเปรดชีต `Line OA and n8n` ได้
+- LINE Official Account ที่เปิด Messaging API แล้ว
+- API key ของ OpenAI (หรือผู้ให้บริการ LLM เจ้าอื่นที่ n8n รองรับ)

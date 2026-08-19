@@ -47,6 +47,35 @@ const sticky = (id, name, content, position, w, h, color) => ({
 const workflow = {
   name: 'IWA LINE OA — AI FAQ Agent',
   nodes: [
+    /* ---------- 0. ทางทดสอบ (ไม่ต้องยิงจาก LINE) ---------- */
+    {
+      parameters: {},
+      type: 'n8n-nodes-base.manualTrigger',
+      typeVersion: 1,
+      position: [-900, 300],
+      id: 'b1a1c0de-0011-4000-8000-000000000011',
+      name: 'ทดสอบด้วยตนเอง',
+    },
+    {
+      parameters: {
+        assignments: {
+          assignments: [
+            { id: 'a1', name: 'message', value: 'ราคะเท่าไหร่ครับ', type: 'string' },
+            { id: 'a2', name: 'userId', value: 'TEST-USER', type: 'string' },
+            { id: 'a3', name: 'replyToken', value: '', type: 'string' },
+          ],
+        },
+        options: {},
+      },
+      type: 'n8n-nodes-base.set',
+      typeVersion: 3.4,
+      position: [-680, 300],
+      id: 'b1a1c0de-0012-4000-8000-000000000012',
+      name: '🧪 ข้อความทดสอบ',
+      notesInFlow: true,
+      notes: 'พิมพ์คำถามที่อยากลองตรงนี้ แล้วกด Test workflow — ไม่ส่งเข้า LINE จริง',
+    },
+
     /* ---------- 1. รับข้อความ ---------- */
     {
       parameters: { httpMethod: 'POST', path: 'lineoa_chatbot', options: {} },
@@ -214,6 +243,31 @@ const workflow = {
     },
     {
       parameters: {
+        conditions: {
+          options: { caseSensitive: true, leftValue: '', typeValidation: 'loose', version: 2 },
+          conditions: [
+            {
+              id: 'has-reply-token',
+              leftValue: '={{ $json.replyToken }}',
+              rightValue: '',
+              operator: { type: 'string', operation: 'notEmpty', singleValue: true },
+            },
+          ],
+          combinator: 'and',
+        },
+        looseTypeValidation: true,
+        options: {},
+      },
+      type: 'n8n-nodes-base.if',
+      typeVersion: 2.2,
+      position: [1160, 0],
+      id: 'b1a1c0de-0013-4000-8000-000000000013',
+      name: 'ส่งเข้า LINE จริงไหม?',
+      notesInFlow: true,
+      notes: 'ไม่มี replyToken = กำลังทดสอบ จึงไม่ยิงเข้า LINE',
+    },
+    {
+      parameters: {
         method: 'POST',
         url: 'https://api.line.me/v2/bot/message/reply',
         authentication: 'genericCredentialType',
@@ -225,7 +279,7 @@ const workflow = {
       },
       type: 'n8n-nodes-base.httpRequest',
       typeVersion: 4.5,
-      position: [1180, 0],
+      position: [1380, 0],
       id: '16560780-0089-48c2-9edd-8d8066782e72',
       name: 'Reply to LINE',
     },
@@ -260,7 +314,7 @@ const workflow = {
       },
       type: 'n8n-nodes-base.googleSheets',
       typeVersion: 4.7,
-      position: [1400, 0],
+      position: [1600, 0],
       id: 'b1a1c0de-0010-4000-8000-000000000010',
       name: 'Log to Sheet',
       credentials: SHEETS_CRED,
@@ -350,6 +404,8 @@ const workflow = {
   pinData: {},
   connections: {
     Webhook: { main: [[{ node: 'Get FAQ', type: 'main', index: 0 }]] },
+    'ทดสอบด้วยตนเอง': { main: [[{ node: '🧪 ข้อความทดสอบ', type: 'main', index: 0 }]] },
+    '🧪 ข้อความทดสอบ': { main: [[{ node: 'Get FAQ', type: 'main', index: 0 }]] },
     'Get FAQ': { main: [[{ node: 'Get Knowledge', type: 'main', index: 0 }]] },
     'Get Knowledge': { main: [[{ node: 'Parse LINE Event', type: 'main', index: 0 }]] },
     // แตกเป็น 2 ทาง: แจ้ง "กำลังพิมพ์" (ทางตัน) และเข้าสู่การจับคู่คำถาม
@@ -369,7 +425,8 @@ const workflow = {
     'AI Agent': { main: [[{ node: 'Build LINE Reply', type: 'main', index: 0 }]] },
     'OpenAI Chat Model': { ai_languageModel: [[{ node: 'AI Agent', type: 'ai_languageModel', index: 0 }]] },
     'Chat Memory (ต่อผู้ใช้)': { ai_memory: [[{ node: 'AI Agent', type: 'ai_memory', index: 0 }]] },
-    'Build LINE Reply': { main: [[{ node: 'Reply to LINE', type: 'main', index: 0 }]] },
+    'Build LINE Reply': { main: [[{ node: 'ส่งเข้า LINE จริงไหม?', type: 'main', index: 0 }]] },
+    'ส่งเข้า LINE จริงไหม?': { main: [[{ node: 'Reply to LINE', type: 'main', index: 0 }], []] },
     'Reply to LINE': { main: [[{ node: 'Log to Sheet', type: 'main', index: 0 }]] },
   },
   active: false,
