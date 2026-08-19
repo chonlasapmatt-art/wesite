@@ -1,0 +1,615 @@
+{
+  "name": "IWA LINE OA — AI FAQ Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lineoa_chatbot",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -640,
+        0
+      ],
+      "id": "745a3d8b-08e6-4bff-ad7b-85cbf5c19576",
+      "name": "Webhook",
+      "webhookId": "f6a3c02c-31d5-4dcc-9ad1-5110c885e7b0"
+    },
+    {
+      "parameters": {
+        "jsCode": "/* ============================================================\n   1) Parse LINE Event\n   ------------------------------------------------------------\n   ดึงข้อความจริงออกจาก payload ของ LINE Messaging API\n   - LINE ส่งมาที่ body.events[] (ไม่ใช่ body.message)\n   - รองรับหลาย event ใน 1 request\n   - ข้าม event ที่ไม่ใช่ข้อความตัวอักษร (สติกเกอร์ รูป ไลฟ์ ฯลฯ)\n   - คืน [] เมื่อเป็น verify request ของ LINE  -> workflow จบเงียบ ๆ\n   ============================================================ */\n\nconst raw = $input.first().json || {};\nconst body = raw.body || raw;\nconst events = Array.isArray(body.events) ? body.events : [];\n\nconst out = [];\n\nfor (const ev of events) {\n  if (!ev || !ev.replyToken) continue;\n\n  const source = ev.source || {};\n  const userId = source.userId || source.groupId || source.roomId || '';\n\n  // ข้อความตัวอักษรเท่านั้น\n  if (ev.type === 'message' && ev.message && ev.message.type === 'text') {\n    const text = String(ev.message.text || '').trim();\n    if (!text) continue;\n    out.push({\n      json: {\n        userId,\n        replyToken: ev.replyToken,\n        text,\n        messageType: 'text',\n        sourceType: source.type || 'user',\n        timestamp: ev.timestamp || Date.now(),\n      },\n    });\n    continue;\n  }\n\n  // ผู้ใช้เพิ่งกดเพิ่มเพื่อน -> ทักทายและแนะนำวิธีใช้\n  if (ev.type === 'follow') {\n    out.push({\n      json: {\n        userId,\n        replyToken: ev.replyToken,\n        text: '__FOLLOW__',\n        messageType: 'follow',\n        sourceType: source.type || 'user',\n        timestamp: ev.timestamp || Date.now(),\n      },\n    });\n    continue;\n  }\n\n  // สติกเกอร์/รูป/ไฟล์ -> ตอบกลับสั้น ๆ ว่าให้พิมพ์เป็นข้อความ\n  if (ev.type === 'message') {\n    out.push({\n      json: {\n        userId,\n        replyToken: ev.replyToken,\n        text: '__NON_TEXT__',\n        messageType: (ev.message && ev.message.type) || 'unknown',\n        sourceType: source.type || 'user',\n        timestamp: ev.timestamp || Date.now(),\n      },\n    });\n  }\n}\n\n// เผื่อกรณีทดสอบด้วย payload ง่าย ๆ เช่น { \"message\": \"ราคา\" }\nif (out.length === 0 && typeof body.message === 'string' && body.message.trim()) {\n  out.push({\n    json: {\n      userId: body.userId || 'test-user',\n      replyToken: body.replyToken || '',\n      text: body.message.trim(),\n      messageType: 'text',\n      sourceType: 'user',\n      timestamp: Date.now(),\n    },\n  });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        20,
+        0
+      ],
+      "id": "b1a1c0de-0001-4000-8000-000000000001",
+      "name": "Parse LINE Event"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/chat/loading/start",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chatId: $json.userId, loadingSeconds: 20 }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        240,
+        220
+      ],
+      "id": "b1a1c0de-0002-4000-8000-000000000002",
+      "name": "Show Typing",
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "notesInFlow": true,
+      "notes": "แสดงจุดสามจุด \"กำลังพิมพ์\" ใน LINE ระหว่างรอ AI (ล้มเหลวได้ ไม่กระทบการตอบ)"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1I1eY-t-1DGjInKdZ0w0iFHZXtdlxbDP-TsR_NcRkIuQ",
+          "mode": "list",
+          "cachedResultName": "Line OA and n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I1eY-t-1DGjInKdZ0w0iFHZXtdlxbDP-TsR_NcRkIuQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1142604915,
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I1eY-t-1DGjInKdZ0w0iFHZXtdlxbDP-TsR_NcRkIuQ/edit#gid=1142604915"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -420,
+        0
+      ],
+      "id": "99df0946-debd-4b6d-9aa5-dfcde38af2ad",
+      "name": "Get FAQ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "73fNRvR60tmd1znc",
+          "name": "Google Sheets account"
+        }
+      },
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1I1eY-t-1DGjInKdZ0w0iFHZXtdlxbDP-TsR_NcRkIuQ",
+          "mode": "list",
+          "cachedResultName": "Line OA and n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I1eY-t-1DGjInKdZ0w0iFHZXtdlxbDP-TsR_NcRkIuQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Knowledge",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -200,
+        0
+      ],
+      "id": "b1a1c0de-0003-4000-8000-000000000003",
+      "name": "Get Knowledge",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "73fNRvR60tmd1znc",
+          "name": "Google Sheets account"
+        }
+      },
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput",
+      "notesInFlow": true,
+      "notes": "ชีตความรู้เพิ่มเติม (คอลัมน์ topic, content) — ถ้ายังไม่มีชีตนี้ ระบบยังทำงานได้ปกติ"
+    },
+    {
+      "parameters": {
+        "jsCode": "/* ============================================================\n   2) Smart Thai Matcher  (หัวใจของระบบ)\n   ------------------------------------------------------------\n   หน้าที่:\n   1. อ่านคำถามลูกค้า + FAQ + คลังความรู้ จาก Google Sheets\n   2. จับคู่คำถามแบบ \"ทนคำผิด\" (typo-tolerant) สำหรับภาษาไทย\n        - ตัดวรรณยุกต์/ไม้ไต่คู้/ทัณฑฆาต   ราคา / ร่าคา / ราค่า  -> เหมือนกัน\n        - ยุบสระที่เสียงใกล้กัน            ราคะ / ราคา            -> เหมือนกัน\n        - ยุบพยัญชนะเสียงเดียวกัน          ราคา / ลาคา / ราฆา     -> เหมือนกัน\n        - แก้เคสลืมสลับภาษา                he8k / ik8k            -> ราคา\n        - Levenshtein + Dice bigram + โครงพยัญชนะ + fuzzy substring\n   3. ตัดสินใจ route:\n        'direct' = มั่นใจมาก ตอบจาก Sheet ทันที (เร็ว/ไม่เสียค่า token)\n        'ai'     = ส่งต่อให้ AI Agent พร้อม context ทั้งหมด\n   ============================================================ */\n\n/* ---------- ปรับจูนได้ตรงนี้ ---------- */\nconst DIRECT_THRESHOLD    = 0.90; // >= ค่านี้ = ตอบจาก Sheet ทันที (ตั้ง 2 = ให้ AI ตอบทุกครั้ง)\nconst CANDIDATE_THRESHOLD = 0.35; // >= ค่านี้ = ส่งเป็น \"ตัวเลือกที่น่าจะใช่\" ให้ AI พิจารณา\nconst SHORT_QUERY_SLACK   = 8;    // คำถามที่ยาวเกินคีย์เวิร์ดเกินนี้ ถือว่าเป็นประโยค -> ให้ AI ตอบ\nconst MAX_CANDIDATES      = 8;    // จำนวนตัวเลือกที่ส่งให้ AI\nconst MAX_FAQ_IN_PROMPT   = 60;   // จำนวนแถว FAQ สูงสุดใน prompt (เรียงตามความเกี่ยวข้องก่อน)\nconst MAX_KNOWLEDGE_ROWS  = 200;  // จำนวนแถวคลังความรู้ที่อ่านจากชีต\nconst MAX_KNOWLEDGE_IN_PROMPT = 30; // จำนวนแถวคลังความรู้ที่ส่งเข้า prompt\nconst MAX_ANSWER_CHARS    = 500;  // ตัดคำตอบยาว ๆ ก่อนใส่ prompt\nconst HONORIFIC           = 'ครับ'; // คำลงท้ายของบอท ('ครับ' หรือ 'ค่ะ')\n\nconst BUSINESS_PROFILE = \"[ข้อมูลบริษัท]\\nชื่อ: บริษัท ไอว่า ริช ยู ดี จำกัด (IWA Rich U D Co., Ltd.)\\nธุรกิจ: ผู้เชี่ยวชาญด้าน ICT Solutions ครบวงจร และสื่อการเรียนรู้ดิจิทัลมาตรฐาน CEFR สำหรับสถานศึกษาและองค์กร\\nที่อยู่: 222/56 หมู่ 7 ตำบลนิมิตรราช อำเภอบางบัวทอง จังหวัดนนทบุรี 11110\\nโทรศัพท์: 099-626-9787, 082-731-8082\\nอีเมล: supannee@iwarichyoudee.com\\nวิสัยทัศน์: เป็นผู้นำด้านการสร้างสรรค์นวัตกรรมดิจิทัลที่ตอบโจทย์ธุรกิจทุกระดับอย่างยั่งยืน\\n\\n[บริการหลัก 5 กลุ่ม]\\n1. Network Infrastructure & Design — ออกแบบ/วางระบบเครือข่าย (LAN/Fiber Optic), ติดตั้งและดูแล Server (Windows/Linux), Network Security & Firewall, ห้องเรียนอัจฉริยะครบวงจร (Smart Classroom), ห้องปฏิบัติการทางภาษาอัจฉริยะ (Digital Language Lab)\\n2. Software & Application Development — พัฒนาโปรแกรมตามความต้องการ (Custom Software), Mobile & Web Application, System Integration, แพลตฟอร์มบริหารจัดการการเรียนรู้ (LMS)\\n3. IT Maintenance Service — ดูแลรักษารายเดือน/รายปี (Preventive Maintenance), กู้คืนข้อมูล (Data Recovery), ตรวจเช็กไวรัส\\n4. Hardware & Software Supply — คอมพิวเตอร์และซอฟต์แวร์ลิขสิทธิ์แท้, จอภาพระบบอัจฉริยะ (AI-Powered Interactive Smart Display), สื่อมัลติมีเดียปฐมวัย-ประถม (Edutainment), สื่อภาษาอังกฤษมาตรฐาน CEFR ครบทุกระดับ\\n5. ICT Training & Seminar — อบรมการใช้ระบบและซอฟต์แวร์สำนักงาน, อบรมห้องเรียน/ห้องปฏิบัติการทางภาษาอัจฉริยะ, อบรมภาษาอังกฤษมาตรฐาน CEFR สำหรับครู, อบรมการใช้สื่อมัลติมีเดียเพื่อการเรียนการสอน\\n\\n[สื่อการเรียนรู้ดิจิทัลที่จำหน่าย]\\nระดับปฐมวัย:\\n- โปรแกรมพัฒนาทักษะกระบวนการคิดเสริมเชาวน์ปัญญา (ราคาอ้างอิง 2,900 บาท)\\n- โปรแกรมพัฒนาทักษะทางคณิตศาสตร์ (2,900 บาท)\\n- โปรแกรมพัฒนาทักษะทางวิทยาศาสตร์ (2,900 บาท)\\n- โปรแกรมพัฒนาทักษะการใช้ภาษา (2,500 บาท)\\n- สื่อการเรียนรู้ระดับปฐมวัย CAI อิงหลักสูตรปฐมวัย พ.ศ. 2560 ครบ 4 สาระ (3,200 บาท)\\n- สื่อมัลติมีเดีย \\\"อาเซียนน่ารู้\\\" (2,200 บาท)\\n- สื่อโฟนิคส์ Phonics Hero (3,500 บาท)\\n- Picaro English — หลักสูตรภาษาอังกฤษผ่านเกม อ้างอิง CEFR (4,900 บาท)\\nระดับประถมศึกษา:\\n- Digital Library@School (DLS) ครบทุกกลุ่มสาระ อิงหลักสูตรแกนกลาง (5,900 บาท)\\n- DLS คณิตศาสตร์ / DLS วิทยาศาสตร์ / DLS ภาษาไทย (อย่างละ 3,800 บาท)\\nระดับมัธยมศึกษา:\\n- Vantage Essential English — หลักสูตรออนไลน์จากอังกฤษ CEFR 6 ระดับ (A1-C1) พร้อม Placement Test (6,900 บาท)\\n\\n[หมายเหตุสำคัญเรื่องราคา]\\nราคาข้างต้นเป็น \\\"ราคาอ้างอิงสำหรับสาธิตระบบ\\\" เท่านั้น ราคาจริงขึ้นกับจำนวนสิทธิ์การใช้งาน (License) และขอบเขตงาน\\nทุกครั้งที่ลูกค้าถามราคา ให้แจ้งราคาอ้างอิงได้ แต่ต้องบอกด้วยว่ากรุณาติดต่อทีมงานเพื่อขอใบเสนอราคาจริง\\nโค้ดส่วนลดที่ใช้ได้บนเว็บไซต์: IWASCHOOL10 (ลด 10%), EDU2026 (ลด 15%)\\n\\n[จุดแข็ง]\\n- ผู้เชี่ยวชาญ ICT ครบวงจร จบในทีมเดียว ตั้งแต่ออกแบบเครือข่ายถึงพัฒนาซอฟต์แวร์\\n- สื่อการเรียนรู้อ้างอิงมาตรฐาน CEFR ครอบคลุมปฐมวัยถึงมัธยมศึกษา\\n- ทีมวิศวกรและที่ปรึกษาผ่านการฝึกฝนเฉพาะทาง\\n- บริการหลังการขาย ดูแลรักษาระบบรายเดือน-รายปี ทีมช่างตอบสนองรวดเร็ว\";\n\n/* ============================================================\n   ส่วนที่ 1: ตัวช่วยทำความสะอาด / ยุบเสียงภาษาไทย\n   ============================================================ */\n\n// วรรณยุกต์ ไม้ไต่คู้ ทัณฑฆาต นิคหิต ยามักการ (U+0E47-U+0E4E)\nconst TONE_MARKS = /[\\u0E47-\\u0E4E]/g;\n// สระและเครื่องหมายทั้งหมด (ใช้ตอนถอด \"โครงพยัญชนะ\")\nconst THAI_VOWELS = /[\\u0E30-\\u0E3A\\u0E40-\\u0E4E]/g;\n// ช่วงอักษรไทยทั้งหมด\nconst THAI_RANGE = /[\\u0E00-\\u0E7F]/;\n\n// พยัญชนะที่ออกเสียงเหมือน/ใกล้กัน -> ยุบเป็นตัวแทนเดียว\nconst CONSONANT_CLASS = {\n  'ข': 'ค', 'ฃ': 'ค', 'ค': 'ค', 'ฅ': 'ค', 'ฆ': 'ค',\n  'ฉ': 'ช', 'ช': 'ช', 'ฌ': 'ช',\n  'ซ': 'ส', 'ศ': 'ส', 'ษ': 'ส', 'ส': 'ส',\n  'ญ': 'ย', 'ย': 'ย',\n  'ฎ': 'ด', 'ด': 'ด',\n  'ฏ': 'ต', 'ต': 'ต',\n  'ฐ': 'ท', 'ฑ': 'ท', 'ฒ': 'ท', 'ถ': 'ท', 'ท': 'ท', 'ธ': 'ท',\n  'ณ': 'น', 'น': 'น',\n  'ผ': 'พ', 'พ': 'พ', 'ภ': 'พ',\n  'ฝ': 'ฟ', 'ฟ': 'ฟ',\n  'ร': 'ร', 'ล': 'ร', 'ฬ': 'ร',\n  'ห': 'ห', 'ฮ': 'ห',\n};\n\n// สระที่มักพิมพ์สลับกัน -> ยุบเป็นตัวแทนเดียว\nconst VOWEL_CLASS = {\n  'ะ': 'า', 'ั': 'า', 'า': 'า', 'ๅ': 'า', 'ำ': 'า',\n  'ิ': 'ี', 'ี': 'ี',\n  'ึ': 'ื', 'ื': 'ื',\n  'ุ': 'ู', 'ู': 'ู',\n  'เ': 'เ', 'แ': 'เ', 'โ': 'เ',\n  'ใ': 'ไ', 'ไ': 'ไ',\n};\n\n// แป้นพิมพ์เกษมณี: กดแป้นอังกฤษ -> ตัวอักษรไทยที่ควรได้\nconst EN_TO_TH = {\n  q: 'ๆ', w: 'ไ', e: 'ำ', r: 'พ', t: 'ะ', y: 'ั', u: 'ี', i: 'ร', o: 'น', p: 'ย',\n  '[': 'บ', ']': 'ล', a: 'ฟ', s: 'ห', d: 'ก', f: 'ด', g: 'เ', h: '้', j: '่',\n  k: 'า', l: 'ส', ';': 'ว', \"'\": 'ง', z: 'ผ', x: 'ป', c: 'แ', v: 'อ', b: 'ิ',\n  n: 'ื', m: 'ท', ',': 'ม', '.': 'ใ', '/': 'ฝ',\n  '1': 'ๅ', '2': '/', '3': '_', '4': 'ภ', '5': 'ถ', '6': 'ุ', '7': 'ึ',\n  '8': 'ค', '9': 'ต', '0': 'จ', '-': 'ข', '=': 'ช',\n  Q: '๐', W: '\"', E: 'ฎ', R: 'ฑ', T: 'ธ', Y: 'ํ', U: '๊', I: 'ณ', O: 'ฯ', P: 'ญ',\n  A: 'ฤ', S: 'ฆ', D: 'ฏ', F: 'โ', G: 'ฌ', H: '็', J: '๋', K: 'ษ', L: 'ศ',\n  Z: '(', X: ')', C: 'ฉ', V: 'ฮ', B: 'ฺ', N: '์', M: '?',\n};\n\n/** ทำความสะอาดขั้นต้น: ตัดอิโมจิ/เครื่องหมาย/ช่องว่างซ้ำ/ตัวซ้ำรัว ๆ */\nfunction normalize(input) {\n  let s = String(input == null ? '' : input).normalize('NFC').toLowerCase();\n  s = s.replace(/[\\u200B-\\u200D\\uFEFF]/g, '');                       // zero-width\n  s = s.replace(/[\\u0E2F\\u0E46\\u0E4F\\u0E5A\\u0E5B]/g, '');          // ฯ ๆ ๏ ๚ ๛\n  s = s.replace(/[\\u{1F000}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{FE00}-\\u{FE0F}\\u{2190}-\\u{21FF}\\u{2B00}-\\u{2BFF}]/gu, ' '); // อิโมจิ/สัญลักษณ์\n  s = s.replace(/[!-\\/:-@\\[-`{-~]/g, ' ');                           // เครื่องหมาย ASCII\n  s = s.replace(/[\\u2000-\\u206F\\u3000-\\u303F]/g, ' ');              // เครื่องหมายสากล\n  s = s.replace(/\\s+/g, ' ').trim();\n  s = s.replace(/(.)\\1{2,}/g, '$1$1');                                // ครัาาาาบ -> ครัาบ\n  return s;\n}\n\n/** ยุบเสียง: ตัดวรรณยุกต์ + ยุบพยัญชนะ/สระที่ใกล้กัน + ตัดช่องว่าง */\nfunction fold(input) {\n  let s = normalize(input).replace(TONE_MARKS, '');\n  let out = '';\n  for (const ch of s) {\n    if (ch === ' ') continue;\n    out += CONSONANT_CLASS[ch] || VOWEL_CLASS[ch] || ch;\n  }\n  return out;\n}\n\n/** โครงพยัญชนะ: เหลือแต่พยัญชนะ ใช้จับคำที่สระเพี้ยนทั้งคำ */\nfunction skeleton(folded) {\n  return folded.replace(THAI_VOWELS, '');\n}\n\n/** แปลงข้อความที่ลืมสลับภาษา: \"ik8k\" -> \"ราคา\" (รองรับกรณีสลับภาษากลางคันด้วย) */\nfunction fromEnglishKeys(input) {\n  const s = String(input == null ? '' : input);\n  let out = '';\n  let converted = 0;\n  for (const ch of s) {\n    if (EN_TO_TH[ch]) { out += EN_TO_TH[ch]; converted++; }\n    else out += ch;\n  }\n  return converted >= 2 && out !== s ? out : '';\n}\n\n/* ============================================================\n   ส่วนที่ 2: อัลกอริทึมวัดความคล้าย\n   ============================================================ */\n\nfunction levenshtein(a, b) {\n  if (a === b) return 0;\n  if (!a.length) return b.length;\n  if (!b.length) return a.length;\n  let prev = new Array(b.length + 1);\n  for (let j = 0; j <= b.length; j++) prev[j] = j;\n  for (let i = 1; i <= a.length; i++) {\n    const cur = [i];\n    const ca = a[i - 1];\n    for (let j = 1; j <= b.length; j++) {\n      const cost = ca === b[j - 1] ? 0 : 1;\n      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);\n    }\n    prev = cur;\n  }\n  return prev[b.length];\n}\n\nfunction levRatio(a, b) {\n  if (!a || !b) return 0;\n  const max = Math.max(a.length, b.length);\n  return max === 0 ? 0 : 1 - levenshtein(a, b) / max;\n}\n\n/** Dice coefficient บน bigram — ทนต่อการสลับตำแหน่งคำ */\nfunction diceBigram(a, b) {\n  if (a.length < 2 || b.length < 2) return a === b ? 1 : 0;\n  const grams = (s) => {\n    const m = new Map();\n    for (let i = 0; i < s.length - 1; i++) {\n      const g = s.substr(i, 2);\n      m.set(g, (m.get(g) || 0) + 1);\n    }\n    return m;\n  };\n  const ga = grams(a), gb = grams(b);\n  let hit = 0;\n  for (const [g, n] of ga) if (gb.has(g)) hit += Math.min(n, gb.get(g));\n  return (2 * hit) / (a.length - 1 + b.length - 1);\n}\n\n/** หา \"หน้าต่าง\" ในประโยคที่คล้ายคีย์เวิร์ดที่สุด — จับคำผิดที่ฝังอยู่กลางประโยค */\nfunction bestWindowRatio(haystack, needle) {\n  if (!haystack || !needle) return 0;\n  let best = 0;\n  for (const w of [needle.length - 1, needle.length, needle.length + 1]) {\n    if (w < 2 || w > haystack.length) continue;\n    for (let i = 0; i + w <= haystack.length; i++) {\n      const r = levRatio(haystack.substr(i, w), needle);\n      if (r > best) best = r;\n      if (best === 1) return 1;\n    }\n  }\n  return best;\n}\n\n/** คะแนนความคล้าง 0..1 ระหว่างข้อความลูกค้ากับคีย์เวิร์ด (ทั้งคู่ผ่าน fold แล้ว) */\nfunction similarity(q, k) {\n  if (!q || !k) return 0;\n  if (q === k) return 1;\n\n  const long = q.length >= k.length ? q : k;\n  const short = q.length >= k.length ? k : q;\n  let best = 0;\n\n  // 1) คีย์เวิร์ดโผล่อยู่ในประโยคตรง ๆ  (\"ราคาเท่าไหร่ครับ\" มี \"ราคา\")\n  if (short.length >= 2 && long.includes(short)) {\n    best = Math.max(best, 0.88 + 0.10 * (short.length / long.length));\n  }\n\n  // 2) ความคล้ายทั้งสตริง\n  best = Math.max(best, levRatio(q, k));\n  best = Math.max(best, diceBigram(q, k) * 0.97);\n\n  // 3) คำผิดที่ฝังกลางประโยค (\"อยากทราบราคะของสื่อ\")\n  if (k.length >= 3) {\n    const w = bestWindowRatio(q, k);\n    if (w >= 0.7) best = Math.max(best, 0.55 + 0.42 * w);\n  }\n\n  // 4) โครงพยัญชนะตรงกัน (สระเพี้ยนทั้งคำ)\n  const qs = skeleton(q), ks = skeleton(k);\n  if (ks.length >= 2 && qs === ks) best = Math.max(best, 0.90);\n  else if (ks.length >= 3 && qs.includes(ks)) best = Math.max(best, 0.82);\n\n  return Math.min(best, 1);\n}\n\n/* ============================================================\n   ส่วนที่ 3: อ่านข้อมูลจาก Google Sheets\n   ============================================================ */\n\nfunction pick(row, names) {\n  for (const key of Object.keys(row)) {\n    const k = key.trim().toLowerCase();\n    if (names.includes(k)) {\n      const v = row[key];\n      if (v != null && String(v).trim() !== '') return String(v).trim();\n    }\n  }\n  return '';\n}\n\nfunction safeRows(nodeName) {\n  try {\n    return $(nodeName).all().map((i) => i.json).filter((r) => r && typeof r === 'object');\n  } catch (e) {\n    return [];\n  }\n}\n\nconst KEYWORD_COLS = ['keyword', 'keywords', 'question', 'q', 'topic', 'คำถาม', 'คีย์เวิร์ด', 'หัวข้อ'];\nconst ANSWER_COLS  = ['answer', 'a', 'response', 'reply', 'คำตอบ', 'ตอบ'];\nconst TITLE_COLS   = ['topic', 'title', 'subject', 'หัวข้อ', 'เรื่อง'];\nconst CONTENT_COLS = ['content', 'detail', 'details', 'info', 'note', 'body', 'รายละเอียด', 'เนื้อหา', 'ข้อมูล'];\n\nconst faqRows = safeRows('Get FAQ')\n  .map((r) => ({ keyword: pick(r, KEYWORD_COLS), answer: pick(r, ANSWER_COLS) }))\n  .filter((r) => r.keyword && r.answer);\n\nconst knowledgeRows = safeRows('Get Knowledge')\n  .map((r) => ({ topic: pick(r, TITLE_COLS), content: pick(r, CONTENT_COLS) }))\n  .filter((r) => r.content)\n  .slice(0, MAX_KNOWLEDGE_ROWS);\n\n/* ============================================================\n   ส่วนที่ 4: ประมวลผลทีละข้อความ\n   ------------------------------------------------------------\n   LINE ส่งได้หลาย event ใน 1 request จึงวนทำทุกข้อความที่เข้ามา\n   ============================================================ */\n\nconst clip = (s, n) => (s.length > n ? s.slice(0, n) + '…' : s);\n\nfunction handle(evt) {\n  const userMessage = String(evt.text || '').trim();\n  const base = {\n    userId: evt.userId || '',\n    replyToken: evt.replyToken || '',\n    userMessage,\n    messageType: evt.messageType || 'text',\n  };\n\n  // ---- ทางลัด: เพิ่มเพื่อนใหม่ / ส่งสติกเกอร์-รูป\n  if (userMessage === '__FOLLOW__') {\n    return {\n      ...base,\n      route: 'direct',\n      matchType: 'greeting',\n      score: 1,\n      answer:\n        'สวัสดี' + HONORIFIC + ' ยินดีต้อนรับสู่ บริษัท ไอว่า ริช ยู ดี จำกัด 🙏\\n' +\n        'สอบถามเรื่องสินค้า บริการ ราคา หรือการอบรมได้เลย' + HONORIFIC + ' พิมพ์ผิดนิดหน่อยก็เข้าใจ' + HONORIFIC + ' 😊',\n      suggestions: faqRows.slice(0, 6).map((r) => r.keyword),\n    };\n  }\n\n  if (userMessage === '__NON_TEXT__') {\n    return {\n      ...base,\n      route: 'direct',\n      matchType: 'non_text',\n      score: 1,\n      answer: 'ขอบคุณ' + HONORIFIC + ' 😊 รบกวนพิมพ์คำถามเป็นข้อความมาได้เลย' + HONORIFIC + ' เดี๋ยวผมช่วยหาคำตอบให้ทันที',\n      suggestions: faqRows.slice(0, 6).map((r) => r.keyword),\n    };\n  }\n\n  // ---- สร้าง \"รูปแบบคำถาม\" หลายเวอร์ชัน เผื่อลืมสลับภาษา\n  const variants = [userMessage];\n  const kbFixed = fromEnglishKeys(userMessage);\n  if (kbFixed) variants.push(kbFixed);\n  const foldedVariants = variants.map(fold).filter(Boolean);\n\n  // ---- ให้คะแนนทุกแถว (1 แถวมีหลายคีย์เวิร์ดได้ คั่นด้วย , | / ขึ้นบรรทัดใหม่)\n  const scored = [];\n  for (const row of faqRows) {\n    const keywords = row.keyword.split(/[,|/\\n;]+/).map((x) => x.trim()).filter(Boolean);\n    let bestScore = 0;\n    let bestKeyword = keywords[0] || row.keyword;\n    for (const kw of keywords) {\n      const kf = fold(kw);\n      for (const qf of foldedVariants) {\n        const sc = similarity(qf, kf);\n        if (sc > bestScore) { bestScore = sc; bestKeyword = kw; }\n      }\n    }\n    scored.push({ keyword: bestKeyword, answer: row.answer, score: bestScore });\n  }\n  scored.sort((a, b) => b.score - a.score);\n\n  const top = scored[0];\n  const candidates = scored.filter((r) => r.score >= CANDIDATE_THRESHOLD).slice(0, MAX_CANDIDATES);\n  const suggestions = (candidates.length ? candidates : scored.slice(0, 6)).map((r) => r.keyword);\n\n  // ---- ทางด่วน: ตอบจาก Sheet ทันที ต่อเมื่อครบ 3 เงื่อนไข\n  //      (1) คะแนนสูงพอ  (2) ไม่มีหัวข้ออื่นคะแนนใกล้กัน  (3) เป็นคำถามสั้น ๆ ไม่ใช่ประโยคยาว\n  //      ประโยคยาวอย่าง \"ขอใบเสนอราคาโรงเรียน 40 เครื่อง\" ต้องให้ AI ตอบ เพราะมีรายละเอียดเกิน FAQ\n  const runnerUp = scored[1] ? scored[1].score : 0;\n  const topKeywordLen = top ? fold(top.keyword).length : 0;\n  const isShortQuery = foldedVariants.some((v) => v.length <= topKeywordLen + SHORT_QUERY_SLACK);\n\n  if (top && top.score >= DIRECT_THRESHOLD && (top.score - runnerUp) >= 0.05 && isShortQuery) {\n    return {\n      ...base,\n      route: 'direct',\n      matchType: top.score === 1 ? 'exact' : 'fuzzy',\n      matchedKeyword: top.keyword,\n      score: Number(top.score.toFixed(3)),\n      keyboardFixed: kbFixed || '',\n      answer: top.answer,\n      suggestions: suggestions.filter((x) => x !== top.keyword).slice(0, 5),\n    };\n  }\n\n  /* ---- ประกอบ System Prompt ส่งให้ AI Agent ----\n     เรียง FAQ และคลังความรู้ตาม \"ความเกี่ยวข้องกับคำถามนี้\" ก่อนเสมอ\n     เรื่องที่ตรงประเด็นที่สุดจึงอยู่ต้น prompt และไม่มีทางถูกตัดทิ้ง */\n  const faqBlock = scored\n    .slice(0, MAX_FAQ_IN_PROMPT)\n    .map((r, i) => i + 1 + '. [' + r.keyword + '] ' + clip(r.answer, MAX_ANSWER_CHARS))\n    .join('\\n');\n\n  const knowledgeBlock = knowledgeRows\n    .map((r) => {\n      const tf = fold(r.topic);\n      const cf = fold(r.content);\n      let sc = 0;\n      for (const qf of foldedVariants) {\n        if (tf) sc = Math.max(sc, similarity(qf, tf));\n        if (qf.length >= 3 && cf.includes(qf)) sc = Math.max(sc, 0.80);\n      }\n      return { ...r, score: sc };\n    })\n    .sort((a, b) => b.score - a.score)\n    .slice(0, MAX_KNOWLEDGE_IN_PROMPT)\n    .map((r) => '- ' + (r.topic ? r.topic + ': ' : '') + clip(r.content, MAX_ANSWER_CHARS))\n    .join('\\n');\n\n  const candidateBlock = candidates.length\n    ? candidates\n        .map((r) => '- \"' + r.keyword + '\" (ความใกล้เคียง ' + Math.round(r.score * 100) + '%) -> ' + clip(r.answer, MAX_ANSWER_CHARS))\n        .join('\\n')\n    : '(ไม่พบหัวข้อที่ใกล้เคียงพอ ให้ตอบจากข้อมูลบริษัทและคลังความรู้ด้านบน)';\n\n  const kbNote = kbFixed\n    ? '\\nหมายเหตุ: ลูกค้าอาจลืมสลับภาษา ข้อความนี้ถ้าแปลงเป็นแป้นไทยจะได้ว่า \"' + kbFixed + '\"'\n    : '';\n\n  const systemPrompt = [\n    'คุณคือ \"น้องไอว่า\" พนักงานผู้ช่วยตอบแชท LINE OA ของ บริษัท ไอว่า ริช ยู ดี จำกัด',\n    'หน้าที่ของคุณคือตอบคำถามลูกค้าได้ทุกเรื่องที่เกี่ยวกับธุรกิจนี้ อย่างสุภาพ กระชับ และถูกต้อง',\n    '',\n    '=== ข้อมูลบริษัท (ใช้ตอบได้ทั้งหมด) ===',\n    BUSINESS_PROFILE,\n    '',\n    '=== คลังความรู้เพิ่มเติมจากทีมงาน (เรียงตามความเกี่ยวข้องกับคำถามนี้) ===',\n    knowledgeBlock || '(ยังไม่มีข้อมูลเพิ่มเติม)',\n    '',\n    '=== FAQ ที่ทีมงานเตรียมไว้ (เรียงตามความเกี่ยวข้อง ข้อ 1 ใกล้เคียงที่สุด — ให้ยึดเป็นคำตอบมาตรฐาน) ===',\n    faqBlock || '(ยังไม่มี FAQ)',\n    '',\n    '=== ระบบเดาให้แล้วว่าลูกค้าน่าจะหมายถึงหัวข้อนี้ ===',\n    'ข้อความดิบที่ลูกค้าพิมพ์: \"' + userMessage + '\"' + kbNote,\n    candidateBlock,\n    '',\n    '=== กติกาการตอบ (สำคัญมาก) ===',\n    '1. ตอบเป็นภาษาไทย สุภาพ ลงท้ายด้วย \"' + HONORIFIC + '\" และตอบให้สั้นกระชับ ไม่เกิน 5-6 บรรทัด',\n    '2. ลูกค้ามักพิมพ์ผิด สะกดเพี้ยน หรือลืมสลับภาษา เช่น \"พารา\"/\"ราคะ\" = \"ราคา\", \"สมัคเรียน\" = \"สมัครเรียน\"',\n    '   ให้เดาเจตนาจากรายการข้างบนแล้วตอบไปเลย ห้ามตอบว่า \"ไม่เข้าใจ\" ถ้ายังพอเดาได้',\n    '3. ถ้ามีหัวข้อที่ใกล้เคียงชัดเจนหัวข้อเดียว ให้ตอบตามคำตอบมาตรฐานของหัวข้อนั้นทันที',\n    '   (จะทวนสั้น ๆ ว่า \"เข้าใจว่าสอบถามเรื่อง ... นะ' + HONORIFIC + '\" ก่อนตอบก็ได้)',\n    '4. ถ้าคลุมเครือจริง ๆ ให้เดาที่น่าจะใช่ที่สุดมาตอบก่อน 1 เรื่อง แล้วค่อยเสนอหัวข้ออื่นให้เลือกไม่เกิน 3 หัวข้อ',\n    '5. ห้ามแต่งข้อมูลที่ไม่มีในข้อมูลข้างบนเด็ดขาด โดยเฉพาะราคา โปรโมชั่น เงื่อนไข หรือวันเวลานัดหมาย',\n    '6. เวลาบอกราคา ให้ระบุว่าเป็นราคาอ้างอิง และชวนติดต่อทีมงานเพื่อขอใบเสนอราคาจริง',\n    '7. ถ้าเป็นเรื่องที่ต้องให้คนช่วย (ต่อรองราคา ออกใบเสนอราคา นัดสาธิต แจ้งซ่อม เคลม) ให้แจ้งช่องทางติดต่อ:',\n    '   โทร 099-626-9787 หรือ 082-731-8082 / อีเมล supannee@iwarichyoudee.com',\n    '8. ถ้าเป็นเรื่องนอกขอบเขตธุรกิจ ให้ปฏิเสธอย่างสุภาพสั้น ๆ แล้วชวนกลับเข้าเรื่องบริการของบริษัท',\n    '9. ห้ามใช้ Markdown (**ตัวหนา**, #, ตาราง) เพราะ LINE แสดงผลไม่ได้ ใช้ข้อความธรรมดา ขึ้นบรรทัดใหม่ และ • ได้',\n    '10. ใช้อิโมจิได้พอประมาณ ไม่เกิน 2 ตัวต่อข้อความ',\n    '11. ตอบให้ตรงประเด็นที่ลูกค้าถามเท่านั้น ห้ามแถมข้อมูลที่ไม่เกี่ยวข้อง และห้ามทวนคำถามยาว ๆ',\n    '12. ถ้าลูกค้าถามหลายเรื่องในข้อความเดียว ให้ตอบให้ครบทุกเรื่อง โดยแยกเป็นบรรทัดละเรื่อง',\n    '13. ถ้าข้อมูลที่มีตอบได้แค่บางส่วน ให้ตอบส่วนที่ตอบได้ก่อน แล้วบอกตรง ๆ ว่าส่วนที่เหลือขอให้ทีมงานติดต่อกลับ',\n  ].join('\\n');\n\n  return {\n    ...base,\n    route: 'ai',\n    matchType: candidates.length ? 'ai_with_candidates' : 'ai_open',\n    matchedKeyword: top && top.score >= CANDIDATE_THRESHOLD ? top.keyword : '',\n    score: top ? Number(top.score.toFixed(3)) : 0,\n    keyboardFixed: kbFixed || '',\n    suggestions: suggestions.slice(0, 5),\n    systemPrompt,\n  };\n}\n\n/* ---- วนทุก event ที่เข้ามา ---- */\nreturn $input.all()\n  .map((item) => item.json)\n  .filter((evt) => evt && typeof evt.text === 'string' && evt.text.trim())\n  .map((evt) => ({ json: handle(evt) }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "b1a1c0de-0004-4000-8000-000000000004",
+      "name": "Smart Thai Matcher"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "route-check",
+              "leftValue": "={{ $json.route }}",
+              "rightValue": "direct",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        460,
+        0
+      ],
+      "id": "b1a1c0de-0005-4000-8000-000000000005",
+      "name": "มั่นใจพอไหม?"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.userMessage }}",
+        "options": {
+          "systemMessage": "={{ $json.systemPrompt }}",
+          "maxIterations": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        680,
+        160
+      ],
+      "id": "b1a1c0de-0006-4000-8000-000000000006",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 700
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        400
+      ],
+      "id": "b1a1c0de-0007-4000-8000-000000000007",
+      "name": "OpenAI Chat Model",
+      "notesInFlow": true,
+      "notes": "สลับไปใช้ Google Gemini หรือโมเดลอื่นได้ โดยลบโหนดนี้แล้วต่อโหนดโมเดลใหม่เข้าช่อง Chat Model"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.userId }}",
+        "contextWindowLength": 12
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        820,
+        400
+      ],
+      "id": "b1a1c0de-0008-4000-8000-000000000008",
+      "name": "Chat Memory (ต่อผู้ใช้)"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "/* ============================================================\n   3) Build LINE Reply   (โหมด: Run Once for Each Item)\n   ------------------------------------------------------------\n   รวมผลลัพธ์จาก 2 ทาง (ตอบตรงจาก Sheet / ตอบโดย AI Agent)\n   แล้วประกอบเป็น payload ของ LINE Reply API\n   - ทำงานทีละข้อความ จึงตอบถูกคนแม้ LINE ส่งมาหลาย event พร้อมกัน\n   - ล้าง Markdown ที่ LINE แสดงผลไม่ได้\n   - ตัดข้อความยาวเป็นหลายข้อความ (สูงสุด 5 ตามลิมิตของ LINE)\n   - แนบปุ่ม Quick Reply หัวข้อยอดนิยม ช่วยลูกค้าที่พิมพ์ผิดซ้ำ ๆ\n   - ถ้า AI ล่ม/ตอบว่าง จะมีข้อความสำรองเสมอ ไม่ปล่อยให้ลูกค้าเงียบ\n   ============================================================ */\n\nconst MAX_CHARS_PER_MESSAGE = 4800;\nconst MAX_MESSAGES = 5;\nconst HONORIFIC = 'ครับ';\nconst CONTACT_PHONE = '099-626-9787';\n\nconst cur = $json || {};\n\n// ดึงผลการจับคู่ของ \"ข้อความนี้\" (paired item) เพื่อไม่ให้ตอบสลับคน\nlet match;\ntry {\n  match = $('Smart Thai Matcher').item.json;\n} catch (e) {\n  match = $('Smart Thai Matcher').first().json;\n}\n\n// AI Agent คืนคำตอบที่ .output / เส้นทางตอบตรงจากชีตคืนที่ .answer\nlet text = String(cur.output || cur.answer || match.answer || '').trim();\n\nif (!text) {\n  const topics = (match.suggestions || []).slice(0, 4).map((s) => '• ' + s).join('\\n');\n  text =\n    'ขออภัย' + HONORIFIC + ' ระบบขัดข้องชั่วคราว 🙏\\n' +\n    'รบกวนพิมพ์คำถามอีกครั้ง หรือติดต่อทีมงานโดยตรงที่ ' + CONTACT_PHONE + '\\n' +\n    (topics ? '\\nหัวข้อที่สอบถามได้บ่อย:\\n' + topics : '');\n}\n\n// LINE ไม่ render markdown — ตัดสัญลักษณ์ที่จะโผล่เป็นขยะออก\ntext = text\n  .replace(/\\*\\*(.+?)\\*\\*/g, '$1')\n  .replace(/__(.+?)__/g, '$1')\n  .replace(/^#{1,6}\\s+/gm, '')\n  .replace(/^\\s*[-*]\\s+/gm, '• ')\n  .replace(/\\n{3,}/g, '\\n\\n')\n  .trim();\n\n// แบ่งข้อความยาวโดยพยายามตัดที่ย่อหน้า/ช่องว่าง\nfunction chunk(str, size) {\n  const parts = [];\n  let rest = str;\n  while (rest.length > size && parts.length < MAX_MESSAGES - 1) {\n    let cut = rest.lastIndexOf('\\n', size);\n    if (cut < size * 0.5) cut = rest.lastIndexOf(' ', size);\n    if (cut < size * 0.5) cut = size;\n    parts.push(rest.slice(0, cut).trim());\n    rest = rest.slice(cut).trim();\n  }\n  parts.push(rest.slice(0, size));\n  return parts.filter(Boolean);\n}\n\nconst messages = chunk(text, MAX_CHARS_PER_MESSAGE).map((t) => ({ type: 'text', text: t }));\n\n// ปุ่มลัดหัวข้อยอดนิยม (LINE ให้แนบกับข้อความสุดท้ายเท่านั้น)\nconst items = (match.suggestions || [])\n  .filter((s) => s && String(s).trim())\n  .slice(0, 6)\n  .map((s) => {\n    const label = String(s).trim().slice(0, 20);\n    return { type: 'action', action: { type: 'message', label, text: label } };\n  });\n\nif (items.length) messages[messages.length - 1].quickReply = { items };\n\nreturn {\n  json: {\n    replyToken: match.replyToken,\n    userId: match.userId,\n    userMessage: match.userMessage,\n    route: match.route,\n    matchType: match.matchType,\n    matchedKeyword: match.matchedKeyword || '',\n    score: match.score,\n    answerText: text,\n    body: { replyToken: match.replyToken, messages },\n  },\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "id": "b1a1c0de-0009-4000-8000-000000000009",
+      "name": "Build LINE Reply"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1180,
+        0
+      ],
+      "id": "16560780-0089-48c2-9edd-8d8066782e72",
+      "name": "Reply to LINE"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1I1eY-t-1DGjInKdZ0w0iFHZXtdlxbDP-TsR_NcRkIuQ",
+          "mode": "list",
+          "cachedResultName": "Line OA and n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I1eY-t-1DGjInKdZ0w0iFHZXtdlxbDP-TsR_NcRkIuQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Chat Log",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now.setZone('Asia/Bangkok').toFormat('yyyy-MM-dd HH:mm:ss') }}",
+            "userId": "={{ $('Build LINE Reply').item.json.userId }}",
+            "question": "={{ $('Build LINE Reply').item.json.userMessage }}",
+            "route": "={{ $('Build LINE Reply').item.json.route }}",
+            "matchType": "={{ $('Build LINE Reply').item.json.matchType }}",
+            "matchedKeyword": "={{ $('Build LINE Reply').item.json.matchedKeyword }}",
+            "score": "={{ $('Build LINE Reply').item.json.score }}",
+            "answer": "={{ $('Build LINE Reply').item.json.answerText }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "question",
+              "displayName": "question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "route",
+              "displayName": "route",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "matchType",
+              "displayName": "matchType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "matchedKeyword",
+              "displayName": "matchedKeyword",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "answer",
+              "displayName": "answer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1400,
+        0
+      ],
+      "id": "b1a1c0de-0010-4000-8000-000000000010",
+      "name": "Log to Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "73fNRvR60tmd1znc",
+          "name": "Google Sheets account"
+        }
+      },
+      "disabled": true,
+      "onError": "continueRegularOutput",
+      "notesInFlow": true,
+      "notes": "บันทึกทุกคำถามลงชีต \"Chat Log\" — สร้างชีตแล้วค่อยเปิดใช้ (คลิกขวา > Activate)"
+    },
+    {
+      "parameters": {
+        "content": "## 1) รับข้อความ + ดึงความรู้\n**Webhook** รับ event จาก LINE Messaging API\n\n**Get FAQ** — ชีต `FAQ` คอลัมน์ `keyword`, `answer`\nใส่หลายคีย์เวิร์ดในช่องเดียวได้ คั่นด้วย `,` หรือ `|`\nเช่น `ราคา, ค่าใช้จ่าย, กี่บาท, เท่าไหร่`\n\n**Get Knowledge** — ชีต `Knowledge` คอลัมน์ `topic`, `content`\nใส่เรื่องอะไรก็ได้ที่อยากให้บอทตอบ เช่น เวลาทำการ,\nขั้นตอนสั่งซื้อ, การรับประกัน (ยังไม่มีชีตนี้ก็ทำงานได้)",
+        "height": 320,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -700,
+        -360
+      ],
+      "id": "note-1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 2) แยกข้อความ + สมองจับคู่คำ\n**Parse LINE Event** อ่าน `body.events[]` ตามสเปกจริง\nของ LINE (ของเดิมอ่าน `body.message` ซึ่งไม่มีอยู่จริง)\nรองรับหลาย event ต่อ 1 request\n\n**Smart Thai Matcher** ยุบวรรณยุกต์/สระ/พยัญชนะ\n+ Levenshtein + Dice bigram + โครงพยัญชนะ\n`ราคะ` `ร่าคา` `ลาคา` `ik8k` -> **ราคา**",
+        "height": 320,
+        "width": 400,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        -360
+      ],
+      "id": "note-2",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 3) เลือกเส้นทางตอบ\nมั่นใจ >= 90% **และ** เป็นคำถามสั้น\n-> ตอบจากชีตทันที (เร็ว ไม่เสียค่า token)\n\nนอกนั้น -> ส่งให้ **AI Agent** พร้อมข้อมูลบริษัท\nFAQ ทั้งหมด คลังความรู้ และรายการหัวข้อที่ระบบ\nเดาไว้ให้พร้อม % ความมั่นใจ",
+        "height": 320,
+        "width": 400,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -360
+      ],
+      "id": "note-3",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 4) AI Agent\nตอบได้ทุกเรื่องในธุรกิจ จาก system prompt ที่บรรจุ\nข้อมูลบริษัท + FAQ + คลังความรู้ และเดาเจตนา\nจากคำที่ลูกค้าพิมพ์ผิดได้เองอีกชั้นหนึ่ง\n\n**Chat Memory** จำบทสนทนาแยกตาม userId ของ LINE\nทำให้ถามต่อเนื่องได้ เช่น \"แล้วราคาล่ะ\"\n\nเปลี่ยนไปใช้ Gemini ได้ โดยเปลี่ยนโหนด Chat Model",
+        "height": 280,
+        "width": 440,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        600,
+        560
+      ],
+      "id": "note-4",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## 5) ตอบกลับ\n**Build LINE Reply** ทำงานทีละข้อความ (ตอบถูกคน\nแม้มีหลาย event) ล้าง Markdown ที่ LINE แสดงไม่ได้\nตัดข้อความยาวเป็นหลายข้อความ และแนบ Quick Reply\n\n**Reply to LINE** ใช้ credential แบบ Header Auth\n(ไม่เก็บ token ไว้ในไฟล์ workflow)\n\n**Log to Sheet** ปิดไว้ก่อน เปิดเมื่อสร้างชีต `Chat Log`",
+        "height": 320,
+        "width": 460,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        900,
+        -360
+      ],
+      "id": "note-5",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get FAQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get FAQ": {
+      "main": [
+        [
+          {
+            "node": "Get Knowledge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Knowledge": {
+      "main": [
+        [
+          {
+            "node": "Parse LINE Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse LINE Event": {
+      "main": [
+        [
+          {
+            "node": "Smart Thai Matcher",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Show Typing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Smart Thai Matcher": {
+      "main": [
+        [
+          {
+            "node": "มั่นใจพอไหม?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "มั่นใจพอไหม?": {
+      "main": [
+        [
+          {
+            "node": "Build LINE Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Build LINE Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Memory (ต่อผู้ใช้)": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build LINE Reply": {
+      "main": [
+        [
+          {
+            "node": "Reply to LINE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to LINE": {
+      "main": [
+        [
+          {
+            "node": "Log to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
