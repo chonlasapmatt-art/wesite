@@ -1,0 +1,219 @@
+{
+  "name": "LINE OA + AI Agent (เวอร์ชันเรียบง่าย)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lineoa_chatbot",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -380,
+        0
+      ],
+      "id": "745a3d8b-08e6-4bff-ad7b-85cbf5c19576",
+      "name": "Webhook",
+      "webhookId": "f6a3c02c-31d5-4dcc-9ad1-5110c885e7b0"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1I1eY-t-1DGjInKdZ0w0iFHZXtdlxbDP-TsR_NcRkIuQ",
+          "mode": "list",
+          "cachedResultName": "Line OA and n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I1eY-t-1DGjInKdZ0w0iFHZXtdlxbDP-TsR_NcRkIuQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1142604915,
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1I1eY-t-1DGjInKdZ0w0iFHZXtdlxbDP-TsR_NcRkIuQ/edit#gid=1142604915"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -160,
+        0
+      ],
+      "id": "99df0946-debd-4b6d-9aa5-dfcde38af2ad",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "73fNRvR60tmd1znc",
+          "name": "Google Sheets account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "/* ============================================================\n   เตรียมข้อมูลให้ AI\n   ------------------------------------------------------------\n   1) อ่านข้อความที่ลูกค้าพิมพ์มาจาก LINE\n   2) เรียง FAQ ในชีตตามความใกล้เคียงกับคำถาม (ทนคำที่พิมพ์ผิด)\n   3) ประกอบคำสั่งให้ AI Agent เอาไปตอบ\n   ============================================================ */\n\n/* ===== แก้ข้อมูลบริษัทตรงนี้ได้เลย ===== */\nconst BUSINESS = `บริษัท ไอว่า ริช ยู ดี จำกัด (IWA Rich U D)\nธุรกิจ: ICT Solutions ครบวงจร และสื่อการเรียนรู้ดิจิทัลมาตรฐาน CEFR สำหรับสถานศึกษา\nบริการ: วางระบบเครือข่าย, ห้องเรียนอัจฉริยะ, ห้องแลปภาษา, พัฒนาซอฟต์แวร์/LMS,\n        ดูแลรักษาระบบ, จำหน่ายอุปกรณ์และสื่อการเรียนรู้, อบรม ICT และภาษาอังกฤษ CEFR\nโทร: 099-626-9787, 082-731-8082\nอีเมล: supannee@iwarichyoudee.com\nที่อยู่: 222/56 หมู่ 7 ต.นิมิตรราช อ.บางบัวทอง จ.นนทบุรี 11110`;\n\nconst HONORIFIC = 'ครับ';   // เปลี่ยนเป็น 'ค่ะ' ได้\nconst MAX_ROWS = 100;       // จำนวนแถวจากชีตที่ส่งให้ AI (เรียงเรื่องที่ใกล้เคียงไว้บนสุดก่อนตัด)\n\n/* ===== 1) ข้อความจากลูกค้า ===== */\nconst body = $('Webhook').first().json.body || {};\nconst events = (body.events || []).filter(\n  (e) => e.type === 'message' && e.message && e.message.type === 'text' && e.message.text\n);\nif (!events.length) return [];   // ไม่ใช่ข้อความตัวอักษร -> ไม่ต้องตอบ\n\n/* ===== 2) ข้อมูลจากชีต ===== */\nconst rows = $input.all()\n  .map((i) => ({\n    keyword: String(i.json.keyword || '').trim(),\n    answer: String(i.json.answer || '').trim(),\n  }))\n  .filter((r) => r.keyword && r.answer);\n\n/* ===== 3) จับคำที่พิมพ์ผิด =====\n   ตัดวรรณยุกต์ทิ้ง แล้วยุบตัวอักษรที่เสียงเหมือนกันให้เป็นตัวเดียว\n   ราคะ / ร่าคา / ลาคา / ราฆา  ->  ราคา                              */\nconst SAME = {\n  'ข': 'ค', 'ฃ': 'ค', 'ฅ': 'ค', 'ฆ': 'ค', 'ฉ': 'ช', 'ฌ': 'ช',\n  'ซ': 'ส', 'ศ': 'ส', 'ษ': 'ส', 'ญ': 'ย', 'ฎ': 'ด', 'ฏ': 'ต',\n  'ฐ': 'ท', 'ฑ': 'ท', 'ฒ': 'ท', 'ถ': 'ท', 'ธ': 'ท', 'ณ': 'น',\n  'ผ': 'พ', 'ภ': 'พ', 'ฝ': 'ฟ', 'ล': 'ร', 'ฬ': 'ร', 'ฮ': 'ห',\n  'ะ': 'า', 'ั': 'า', 'ๅ': 'า', 'ำ': 'า', 'ิ': 'ี', 'ึ': 'ื',\n  'ุ': 'ู', 'แ': 'เ', 'โ': 'เ', 'ใ': 'ไ',\n};\n\nfunction fold(s) {\n  return String(s || '').toLowerCase().normalize('NFC')\n    .replace(/[็-๎]/g, '')              // วรรณยุกต์ ไม้ไต่คู้ ทัณฑฆาต\n    .replace(/[^฀-๿a-z0-9]/g, '')       // เหลือเฉพาะตัวอักษร\n    .replace(/(.)\\1{2,}/g, '$1')                  // ราคาาาา -> ราคา\n    .split('').map((c) => SAME[c] || c).join('');\n}\n\nfunction distance(a, b) {\n  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);\n  for (let i = 1; i <= a.length; i++) {\n    const cur = [i];\n    for (let j = 1; j <= b.length; j++) {\n      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));\n    }\n    prev = cur;\n  }\n  return prev[b.length];\n}\n\nfunction similar(q, k) {\n  if (!q || !k) return 0;\n  if (q === k) return 1;\n  const long = q.length >= k.length ? q : k;\n  const short = q.length >= k.length ? k : q;\n  if (short.length >= 2 && long.includes(short)) return 0.95;   // คีย์เวิร์ดอยู่ในประโยค\n  return 1 - distance(q, k) / long.length;\n}\n\n/* ===== 4) ประกอบคำสั่งให้ AI (ทีละข้อความ) ===== */\nreturn events.map((ev) => {\n  const question = ev.message.text.trim();\n  const q = fold(question);\n\n  // ให้คะแนนทุกแถว แล้วเรียงเรื่องที่ใกล้เคียงที่สุดไว้บนสุด\n  const ranked = rows\n    .map((r) => {\n      const score = Math.max(\n        ...r.keyword.split(/[,|/\\n;]+/).map((k) => similar(q, fold(k)))\n      );\n      return { ...r, score };\n    })\n    .sort((a, b) => b.score - a.score);\n\n  const faqList = ranked\n    .slice(0, MAX_ROWS)\n    .map((r, i) => `${i + 1}. [${r.keyword}] ${r.answer}`)\n    .join('\\n');\n\n  const guesses = ranked\n    .filter((r) => r.score >= 0.35)\n    .slice(0, 3)\n    .map((r) => `\"${r.keyword}\" (ใกล้เคียง ${Math.round(r.score * 100)}%)`)\n    .join(', ') || '(เดาไม่ได้ ให้ตอบจากข้อมูลบริษัท)';\n\n  const systemPrompt = `คุณคือผู้ช่วยตอบแชท LINE OA ของ ${BUSINESS}\n\nข้อมูลถาม-ตอบที่ทีมงานเตรียมไว้ (เรียงจากที่ใกล้เคียงคำถามนี้มากที่สุด):\n${faqList || '(ยังไม่มีข้อมูลในชีต)'}\n\nลูกค้าพิมพ์มาว่า: \"${question}\"\nระบบเดาว่าน่าจะหมายถึง: ${guesses}\n\nกติกาการตอบ:\n1. ตอบภาษาไทย สุภาพ ลงท้าย \"${HONORIFIC}\" กระชับแต่ครบถ้วน ไม่เกิน 8 บรรทัด\n2. ก่อนตอบ ให้ไตร่ตรองก่อนว่าลูกค้าต้องการรู้อะไรจริง ๆ แล้วจึงตอบให้ตรงที่สุด\n3. ลูกค้ามักพิมพ์ผิด เช่น \"พารา\"/\"ราคะ\" = \"ราคา\", \"สมัคเรียน\" = \"สมัครเรียน\"\n   ให้เดาเจตนาแล้วตอบไปเลย ห้ามตอบว่า \"ไม่เข้าใจ\" ถ้ายังพอเดาได้\n4. เป้าหมายคือ \"จบในข้อความเดียว\" ลูกค้าไม่ต้องถามซ้ำและไม่ต้องรอทีมงานติดต่อกลับ\n   ถ้าคำตอบกระจายอยู่หลายแถวในรายการข้างบน ให้รวบรวมมาตอบให้ครบในครั้งเดียว\n5. ถ้าลูกค้าถามหลายเรื่องในข้อความเดียว ให้ตอบให้ครบทุกเรื่อง แยกเป็นบรรทัดละเรื่อง\n6. ตอบเฉพาะสิ่งที่ถาม ไม่ต้องแถมข้อมูลที่ไม่เกี่ยวข้อง และไม่ต้องทวนคำถามยาว ๆ\n7. ห้ามแต่งข้อมูลที่ไม่มีในข้างบน โดยเฉพาะราคา โปรโมชั่น หรือวันนัดหมาย\n8. เฉพาะกรณีที่ข้อมูลข้างบนไม่มีคำตอบจริง ๆ หรือเป็นเรื่องที่ต้องตกลงรายบุคคล\n   (ต่อรองราคา ออกใบเสนอราคา นัดหมายวันเวลา) จึงค่อยแจ้งเบอร์ 099-626-9787\n   นอกเหนือจากนั้นให้ตอบเองให้จบ อย่าโยนให้ทีมงานโดยไม่จำเป็น\n9. ห้ามใช้ Markdown เพราะ LINE แสดงผลไม่ได้ ใช้ข้อความธรรมดาและขึ้นบรรทัดใหม่\n`;\n\n  return {\n    json: {\n      replyToken: ev.replyToken,\n      userId: (ev.source && ev.source.userId) || '',\n      question,\n      systemPrompt,\n    },\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        60,
+        0
+      ],
+      "id": "ee844ed8-232e-496e-a1d4-b826c95e7712",
+      "name": "เตรียมข้อมูลให้ AI",
+      "notesInFlow": true,
+      "notes": "แก้ข้อมูลบริษัทได้ที่บรรทัดบน ๆ ของโค้ด"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.question }}",
+        "options": {
+          "systemMessage": "={{ $json.systemPrompt }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        280,
+        0
+      ],
+      "id": "a9b8c7d6-0001-4000-8000-000000000001",
+      "name": "AI Agent",
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        220
+      ],
+      "id": "a9b8c7d6-0002-4000-8000-000000000002",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/reply",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer วาง LINE Channel Access Token ตัวใหม่ตรงนี้"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  replyToken: $('เตรียมข้อมูลให้ AI').item.json.replyToken,\n  messages: [{\n    type: 'text',\n    text: ($json.output || 'ขออภัยครับ ระบบขัดข้องชั่วคราว รบกวนติดต่อ 099-626-9787')\n      .replace(/[*#_`]/g, '').slice(0, 4900)\n  }]\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        500,
+        0
+      ],
+      "id": "16560780-0089-48c2-9edd-8d8066782e72",
+      "name": "ตอบกลับ LINE"
+    },
+    {
+      "parameters": {
+        "content": "## ทำ 3 อย่างนี้แล้วใช้ได้เลย\n\n**1.** โหนด `ตอบกลับ LINE` -> ช่อง Authorization\nวาง `Bearer <token ใหม่>` (token เดิมหลุดแล้ว ต้องออกใหม่)\n\n**2.** โหนด `OpenAI Chat Model` -> ใส่ API key\n\n**3.** กด Active มุมขวาบน\n\nชีตที่ใช้: `FAQ` คอลัมน์ `keyword`, `answer` เท่านั้น\nอยากให้บอทตอบเรื่องอะไรเพิ่ม = เพิ่มแถวในชีต ไม่ต้องแก้ workflow\n(ใส่หลายคำในช่อง keyword ได้ คั่นด้วย `,`)",
+        "height": 340,
+        "width": 420,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -380,
+        -400
+      ],
+      "id": "a9b8c7d6-0003-4000-8000-000000000003",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "เตรียมข้อมูลให้ AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "เตรียมข้อมูลให้ AI": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "ตอบกลับ LINE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
