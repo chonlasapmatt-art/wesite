@@ -3,448 +3,104 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IWA Rich U D | ICT Solutions & สื่อการเรียนรู้ดิจิทัล</title>
-<meta name="description" content="บริษัท ไอว่า ริช ยู ดี จำกัด — ผู้เชี่ยวชาญด้าน ICT Solutions ครบวงจร และสื่อการเรียนรู้ดิจิทัลมาตรฐาน CEFR สำหรับสถานศึกษา">
+<title>IWA Rich U D | ICT Solutions & Digital Learning</title>
+<meta name="description" content="บริษัท ไอว่า ริช ยู ดี จำกัด — ICT Solutions และสื่อการเรียนรู้ดิจิทัล">
 <link rel="icon" href="assets/img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700;800&family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
+<style>
+:root{--brand:#16305c;--brand2:#0e2144;--gold:#c9a227;--ink:#162033;--muted:#667085;--paper:#fff;--soft:#f5f7fa;--line:#e7ebf0}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Sarabun,system-ui,sans-serif}
+button{font:inherit}
+.container{width:min(1180px,92%);margin:auto}
+.site-header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-wrap{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:12px;color:var(--brand);text-decoration:none}
+.brand-mark{width:48px;height:48px;border-radius:12px;overflow:hidden;display:grid;place-items:center;background:#fff;box-shadow:0 8px 25px rgba(22,48,92,.12)}
+.brand-mark img{width:100%;height:100%;object-fit:cover}
+.brand-name{font:800 20px/1 Kanit,sans-serif;letter-spacing:.3px}.brand-name small{display:block;font:500 11px/1.5 Sarabun,sans-serif;color:var(--muted);letter-spacing:.3px;margin-top:4px}
+.main-nav{display:flex;gap:6px;align-items:center}.main-nav button,.mobile-nav button{border:0;background:transparent;color:#40506a;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.2s}.main-nav button:hover,.main-nav button.active,.mobile-nav button:hover{background:#eef3f9;color:var(--brand)}
+.burger{display:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px;cursor:pointer}.bl{display:block;width:20px;height:2px;background:var(--brand);margin:4px}
+.mobile-nav{display:none;padding:10px 4%;border-top:1px solid var(--line);background:#fff;flex-wrap:wrap}.mobile-nav.open{display:flex}
+.hero{background:linear-gradient(135deg,var(--brand2),var(--brand));color:#fff;padding:88px 0 76px;overflow:hidden}.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:50px;align-items:center}.eyebrow{display:inline-block;font:700 13px/1.2 Kanit,sans-serif;letter-spacing:1.2px;color:var(--gold);margin-bottom:14px}.hero h1{font:800 clamp(38px,5vw,64px)/1.12 Kanit,sans-serif;margin:0 0 18px}.hero h1 span{color:#e8c468}.hero p{font-size:18px;line-height:1.9;color:rgba(255,255,255,.82);max-width:720px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}.btn{border:0;border-radius:12px;padding:13px 20px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:9px;font-weight:700}.btn-primary{background:#e8c468;color:#132648}.btn-ghost{border:1px solid rgba(255,255,255,.28);background:transparent;color:#fff}.hero-card{min-height:410px;border-radius:26px;padding:18px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.18);box-shadow:0 28px 80px rgba(0,0,0,.25)}.hero-card img{width:100%;height:100%;min-height:370px;object-fit:cover;border-radius:18px}
+.section{padding:84px 0}.section.alt{background:var(--soft)}.section-head{text-align:center;max-width:780px;margin:0 auto 44px}.section-head h2{font:800 40px/1.2 Kanit,sans-serif;margin:7px 0 12px;color:var(--brand)}.section-head p{color:var(--muted);line-height:1.9;margin:0}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.card{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 10px 35px rgba(20,36,64,.06)}
+.product-card img{width:100%;height:220px;object-fit:cover;background:#eef2f7}.product-body{padding:20px}.tag{display:inline-block;padding:6px 10px;border-radius:999px;background:#edf2f8;color:var(--brand);font-size:12px;font-weight:700}.product-body h3{font:700 22px/1.35 Kanit,sans-serif;margin:12px 0 8px;color:var(--brand)}.product-body p{margin:0;color:var(--muted);line-height:1.8}.detail-btn{margin-top:16px;width:100%;border:1px solid #d8e0ea;background:#fff;color:var(--brand);padding:11px 14px;border-radius:10px;cursor:pointer;font-weight:700}.detail-btn:hover{background:#f3f6fa}
+.service-grid{grid-template-columns:repeat(3,1fr)}.service-card{padding:24px}.service-card img{width:100%;height:170px;object-fit:cover;border-radius:14px}.service-card h3{font:700 22px Kanit,sans-serif;color:var(--brand);margin:16px 0 8px}.service-card ul{margin:0;padding-left:20px;color:var(--muted);line-height:1.9}
+.about-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:40px;align-items:center}.about-grid img{width:100%;border-radius:24px;box-shadow:0 20px 60px rgba(17,36,67,.12)}.about-copy h2{font:800 42px Kanit,sans-serif;color:var(--brand);margin:0 0 14px}.about-copy p{color:var(--muted);line-height:1.95}.about-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}.about-list div{padding:14px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.contact-card{padding:28px}.contact-card h3{font:700 25px Kanit,sans-serif;color:var(--brand);margin-top:0}.info-row{padding:14px 0;border-bottom:1px solid var(--line)}.info-row:last-child{border-bottom:0}.info-row strong{display:block;color:var(--brand);margin-bottom:4px}.info-row span{color:var(--muted);line-height:1.7}
+.modal{position:fixed;inset:0;background:rgba(6,18,37,.68);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}.modal.open{display:flex}.modal-card{width:min(880px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:24px;position:relative}.modal-close{position:absolute;right:15px;top:12px;border:0;background:#f2f4f7;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:22px}.modal-grid{display:grid;grid-template-columns:1fr 1fr}.modal-grid img{width:100%;height:100%;min-height:360px;object-fit:cover}.modal-content{padding:32px}.modal-content h2{font:800 32px Kanit,sans-serif;color:var(--brand);margin:12px 0}.modal-content p{color:var(--muted);line-height:1.9}.modal-note{padding:14px;border-radius:12px;background:#f7f8fa;border:1px solid var(--line);color:#596579;font-size:14px}
+footer{background:#091a33;color:#dfe8f5;padding:45px 0}.footer-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:30px}.footer-brand{font:800 27px Kanit,sans-serif}.footer-small{color:#aebbd0;line-height:1.8;margin-top:8px}.copyright{border-top:1px solid rgba(255,255,255,.12);margin-top:28px;padding-top:18px;color:#8ea0ba;font-size:13px}
+@media(max-width:900px){.main-nav{display:none}.burger{display:block}.hero-grid,.about-grid,.contact-grid,.modal-grid{grid-template-columns:1fr}.cards,.service-grid{grid-template-columns:repeat(2,1fr)}.hero-card{min-height:auto}.hero-card img{min-height:280px}.about-copy h2{font-size:34px}}
+@media(max-width:620px){.brand-name{font-size:16px}.brand-name small{font-size:9px}.cards,.service-grid,.about-list,.footer-grid{grid-template-columns:1fr}.section{padding:64px 0}.section-head h2{font-size:32px}.hero{padding:65px 0}.hero h1{font-size:40px}.hero p{font-size:16px}}
+</style>
 </head>
-<body class="pre-load">
-
-<div class="page-loader" id="pageLoader" aria-hidden="true">
-  <div class="page-loader-mark"><img src="assets/img/logo.png" alt=""></div>
-</div>
-
-<div class="scroll-progress" id="scrollProgress"></div>
-<div class="toast-stack" id="toastStack"></div>
-
-<!-- ============ HEADER ============ -->
-<header>
-  <div class="nav-wrap">
-    <a href="#" class="brand" data-nav="home">
-      <span class="brand-mark"><img src="assets/img/logo.png" alt="IWA Rich U D logo"></span>
+<body>
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a href="#home" class="brand" data-section="home">
+      <span class="brand-mark"><img src="assets/img/logo.png" alt="IWA Rich U D"></span>
       <span class="brand-name">IWA RICH U D<small>ICT Solutions &amp; Digital Learning</small></span>
     </a>
     <nav class="main-nav" aria-label="เมนูหลัก">
-      <button data-nav="home">หน้าแรก</button>
-      <button data-nav="about">เกี่ยวกับเรา</button>
-      <button data-nav="services">บริการ</button>
-      <button data-nav="store">ร้านค้า</button>
-      <button data-nav="training">อบรม/สัมมนา</button>
-      <button data-nav="contact">ติดต่อเรา</button>
+      <button data-section="home">หน้าแรก</button>
+      <button data-section="about">เกี่ยวกับเรา</button>
+      <button data-section="services">บริการ</button>
+      <button data-section="products">สินค้า</button>
+      <button data-section="training">อบรม/สัมมนา</button>
+      <button data-section="contact">ติดต่อเรา</button>
     </nav>
-    <div class="nav-actions">
-      <button class="cart-btn" id="cartBtn" data-nav="cart" aria-label="ตะกร้าสินค้า">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 3h2l2.4 12.2a2 2 0 002 1.8h8.2a2 2 0 002-1.6L21 8H6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="21" r="1.4" fill="currentColor"/><circle cx="18" cy="21" r="1.4" fill="currentColor"/></svg>
-        <span class="cart-badge" id="cartBadge">0</span>
-      </button>
-      <button class="burger" id="burgerBtn" aria-label="เมนู" aria-expanded="false">
-        <span class="bl"></span><span class="bl"></span><span class="bl"></span>
-      </button>
-    </div>
+    <button class="burger" id="burgerBtn" aria-label="เปิดเมนู"><span class="bl"></span><span class="bl"></span><span class="bl"></span></button>
   </div>
-  <div class="mobile-nav" id="mobileNav">
-    <button data-nav="home">หน้าแรก</button>
-    <button data-nav="about">เกี่ยวกับเรา</button>
-    <button data-nav="services">บริการ</button>
-    <button data-nav="store">ร้านค้า</button>
-    <button data-nav="training">อบรม/สัมมนา</button>
-    <button data-nav="contact">ติดต่อเรา</button>
+  <div class="container mobile-nav" id="mobileNav">
+    <button data-section="home">หน้าแรก</button><button data-section="about">เกี่ยวกับเรา</button><button data-section="services">บริการ</button><button data-section="products">สินค้า</button><button data-section="training">อบรม/สัมมนา</button><button data-section="contact">ติดต่อเรา</button>
   </div>
 </header>
 
-<main>
-
-<!-- ============ HOME VIEW ============ -->
-<section class="view active" id="view-home">
-  <div class="hero">
-    <div class="hero-clip"></div>
-    <div class="hero-orb o1"></div>
-    <div class="hero-orb o2"></div>
-    <div class="hero-spotlight" id="heroSpotlight" aria-hidden="true"></div>
-    <div class="container hero-inner">
+<main id="home">
+  <section class="hero">
+    <div class="container hero-grid">
       <div>
-        <span class="eyebrow" style="color:var(--gold-light)">ICT SOLUTIONS · DIGITAL LEARNING</span>
-        <h1>ยกระดับโรงเรียนและองค์กรของคุณ ด้วย<span> เทคโนโลยีที่ใช้งานได้จริง</span></h1>
-        <p class="lede">บริษัท ไอว่า ริช ยู ดี จำกัด ให้บริการ ICT ครบวงจร ตั้งแต่ออกแบบระบบเครือข่าย ห้องเรียนอัจฉริยะ ไปจนถึงสื่อการเรียนรู้ดิจิทัลมาตรฐาน CEFR สำหรับทุกช่วงวัย</p>
-        <div class="hero-ctas">
-          <button class="btn btn-gold magnetic" data-nav="store">เลือกซื้อสื่อการเรียนรู้ <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button class="btn btn-outline magnetic" data-nav="contact">ขอใบเสนอราคา</button>
-        </div>
-        <div class="hero-stats">
-          <div><strong data-count="5">0</strong><span>กลุ่มบริการหลัก</span></div>
-          <div><strong data-count="3">0</strong><span>ระดับชั้นสื่อการเรียนรู้</span></div>
-          <div><strong>CEFR</strong><span>มาตรฐานสากล</span></div>
-        </div>
+        <span class="eyebrow">ICT SOLUTIONS · DIGITAL LEARNING</span>
+        <h1>ยกระดับโรงเรียนและองค์กรด้วย <span>เทคโนโลยีที่ใช้งานได้จริง</span></h1>
+        <p>บริษัท ไอว่า ริช ยู ดี จำกัด ให้บริการด้าน ICT และสื่อการเรียนรู้ดิจิทัล ตั้งแต่โครงสร้างพื้นฐาน ระบบซอฟต์แวร์ ห้องเรียนอัจฉริยะ ไปจนถึงหลักสูตรและสื่อการเรียนรู้มาตรฐาน CEFR</p>
+        <div class="hero-actions"><button class="btn btn-primary" data-section="products">ดูสินค้าและรายละเอียด</button><button class="btn btn-ghost" data-section="contact">ข้อมูลบริษัท</button></div>
       </div>
-      <div class="hero-collage" id="heroCollage" aria-hidden="true">
-        <svg class="collage-orbit" viewBox="0 0 460 460" aria-hidden="true"><circle cx="230" cy="230" r="212" fill="none" stroke="rgba(232,196,104,0.35)" stroke-width="1.5" stroke-dasharray="2 10"/></svg>
-        <span class="collage-dot d1"></span>
-        <span class="collage-dot d2"></span>
-        <span class="collage-dot d3"></span>
-        <div class="collage-photo c1" data-depth="18"><div class="collage-photo-inner"><img src="assets/img/hero-analytics.jpg" alt=""></div><span class="collage-tag">Business Analytics</span></div>
-        <div class="collage-photo c2" data-depth="30"><div class="collage-photo-inner"><img src="assets/img/hero-smartboard.jpg" alt=""></div><span class="collage-tag">Smart Classroom</span></div>
-        <div class="collage-photo c3" data-depth="24"><div class="collage-photo-inner"><img src="assets/img/hero-laptops.jpg" alt=""></div><span class="collage-tag">Digital Learning</span></div>
-      </div>
+      <div class="hero-card"><img src="assets/img/hero-smartboard.jpg" alt="Smart Classroom"></div>
     </div>
-  </div>
+  </section>
 
-  <div class="trust-strip">
-    <div class="container trust-inner">
-      <span class="trust-label">หลักสูตร &amp; แพลตฟอร์มที่เราเป็นตัวแทนจำหน่าย</span>
-      <div class="marquee">
-        <div class="marquee-track">
-          <img src="assets/img/logo-picaro.jpg" alt="Picaro English">
-          <img src="assets/img/product-dls.jpg" alt="Digital Library@School">
-          <img src="assets/img/product-phonicshero.jpg" alt="Phonics Hero">
-          <img src="assets/img/product-vantage.jpg" alt="Vantage Essential English">
-          <img src="assets/img/logo-cefr.jpg" alt="CEFR">
-          <img src="assets/img/logo-picaro.jpg" alt="Picaro English">
-          <img src="assets/img/product-dls.jpg" alt="Digital Library@School">
-          <img src="assets/img/product-phonicshero.jpg" alt="Phonics Hero">
-          <img src="assets/img/product-vantage.jpg" alt="Vantage Essential English">
-          <img src="assets/img/logo-cefr.jpg" alt="CEFR">
-        </div>
-      </div>
+  <section class="section" id="about">
+    <div class="container about-grid">
+      <img src="assets/img/about-team.jpg" alt="ทีมงาน IWA Rich U D">
+      <div class="about-copy"><span class="eyebrow">ABOUT IWA RICH U D</span><h2>พันธมิตรด้านเทคโนโลยีและสื่อการเรียนรู้</h2><p>บริษัท ไอว่า ริช ยู ดี จำกัด มุ่งเน้นการนำเทคโนโลยีที่เหมาะสมไปใช้งานจริงในสถานศึกษาและองค์กร โดยให้ความสำคัญกับคุณภาพ ความเหมาะสมของระบบ และการสนับสนุนผู้ใช้งาน</p><div class="about-list"><div><strong>ICT Solutions</strong><br><span>โครงสร้างพื้นฐานและระบบดิจิทัล</span></div><div><strong>Digital Learning</strong><br><span>สื่อการเรียนรู้และหลักสูตรดิจิทัล</span></div><div><strong>Professional Team</strong><br><span>ทีมงานให้คำปรึกษาและดูแลระบบ</span></div><div><strong>After-sales Service</strong><br><span>บริการดูแลหลังการติดตั้ง</span></div></div></div>
     </div>
-  </div>
+  </section>
 
-  <div class="section">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow">ทำไมต้อง IWA Rich U D</span>
-        <h2>พันธมิตรด้านเทคโนโลยีที่โรงเรียนไว้วางใจ</h2>
-        <p>ผสานความเชี่ยวชาญด้านโครงสร้างพื้นฐาน ICT เข้ากับสื่อการเรียนรู้มาตรฐานสากล เพื่อผลลัพธ์ที่ใช้งานได้จริงในห้องเรียน</p>
-      </div>
-      <div class="why-grid reveal-stagger">
-        <div class="why-card">
-          <div class="why-icon">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2.2" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="19" r="2.2" stroke="currentColor" stroke-width="1.6"/><circle cx="19" cy="19" r="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.2V13M12 13L5 17M12 13l7 4" stroke="currentColor" stroke-width="1.6"/></svg>
-          </div>
-          <h3>ผู้เชี่ยวชาญ ICT ครบวงจร</h3>
-          <p>ตั้งแต่ออกแบบเครือข่าย ติดตั้งห้องเรียนอัจฉริยะ ไปจนถึงพัฒนาซอฟต์แวร์เฉพาะทาง จบในทีมเดียว</p>
-        </div>
-        <div class="why-card">
-          <div class="why-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M2 8l10-4 10 4-10 4-10-4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 10.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-5.5" stroke="currentColor" stroke-width="1.6"/></svg></div>
-          <h3>สื่อการเรียนรู้มาตรฐาน CEFR</h3>
-          <p>หลักสูตรภาษาอังกฤษและสื่อดิจิทัลอ้างอิงกรอบมาตรฐานสากล ครอบคลุมปฐมวัยถึงมัธยมศึกษา</p>
-        </div>
-        <div class="why-card">
-          <div class="why-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2M10 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <h3>ทีมงานมืออาชีพ</h3>
-          <p>วิศวกรและที่ปรึกษาผ่านการฝึกฝนเฉพาะทาง พร้อมดูแลตั้งแต่วางระบบจนถึงบริการหลังการขาย</p>
-        </div>
-        <div class="why-card">
-          <div class="why-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M14.7 6.3a4 4 0 01-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 015.4-5.4l-3-3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
-          <h3>บริการหลังการขายที่ไว้ใจได้</h3>
-          <p>ดูแลรักษาระบบรายเดือน-รายปี พร้อมทีมช่างที่ตอบสนองรวดเร็วเมื่อเกิดปัญหา</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  <section class="section alt" id="services">
+    <div class="container"><div class="section-head"><span class="eyebrow">OUR SERVICES</span><h2>บริการของเรา</h2><p>บริการด้าน ICT ตั้งแต่การออกแบบ ติดตั้ง พัฒนา ไปจนถึงดูแลระบบ</p></div><div class="cards service-grid" id="serviceGrid"></div></div>
+  </section>
 
-  <div class="section section-alt">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow">บริการของเรา</span>
-        <h2>ครบทุกโซลูชันด้าน ICT ในที่เดียว</h2>
-        <p>จากโครงสร้างพื้นฐานเครือข่าย ไปจนถึงซอฟต์แวร์และสื่อการเรียนรู้ เราดูแลคุณตั้งแต่ต้นจนจบ</p>
-      </div>
-      <div class="svc-grid reveal-stagger" id="homeServiceGrid"></div>
-    </div>
-  </div>
+  <section class="section" id="products">
+    <div class="container"><div class="section-head"><span class="eyebrow">PRODUCT CATALOG</span><h2>สินค้าและสื่อการเรียนรู้</h2><p>ดูข้อมูลสินค้าและรายละเอียดได้โดยตรงจากหน้าเว็บไซต์ โดยไม่มีระบบตะกร้า การชำระเงิน หรือการสั่งซื้อออนไลน์</p></div><div class="cards" id="productGrid"></div></div>
+  </section>
 
-  <div class="section">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow">สินค้าแนะนำ</span>
-        <h2>สื่อการเรียนรู้ดิจิทัลยอดนิยม</h2>
-        <p>สื่อคุณภาพสำหรับทุกช่วงวัย พร้อมนำไปใช้จริงในห้องเรียน</p>
-      </div>
-      <div class="product-grid reveal-stagger" id="homeProductGrid"></div>
-    </div>
-  </div>
+  <section class="section alt" id="training">
+    <div class="container"><div class="section-head"><span class="eyebrow">TRAINING &amp; SEMINAR</span><h2>อบรมและสัมมนา</h2><p>กิจกรรมและหลักสูตรสำหรับครู บุคลากรทางการศึกษา และผู้ใช้งานระบบ</p></div><div class="cards service-grid" id="trainingGrid"></div></div>
+  </section>
 
-  <div class="proof-banner reveal">
-    <div class="proof-photo"><img src="assets/img/training-group.jpg" alt="ทีมงาน IWA ในกิจกรรมอบรมจริง"></div>
-    <div class="container proof-inner">
-      <span class="eyebrow" style="color:var(--gold-light)">Proven in the field</span>
-      <h2>ผลงานจริงจากกิจกรรมอบรมและสัมมนาทั่วประเทศ</h2>
-      <div class="proof-stats">
-        <div><strong data-count="5">0</strong><span>กลุ่มบริการหลัก</span></div>
-        <div><strong data-count="13" data-suffix="+">0</strong><span>สื่อการเรียนรู้ดิจิทัล</span></div>
-        <div><strong data-count="6" data-suffix=" ระดับ">0</strong><span>หลักสูตร CEFR (A1–C1)</span></div>
-      </div>
-      <button class="btn btn-outline" data-nav="training">ดูภาพกิจกรรมจริง <svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="container">
-      <div class="cta-band reveal">
-        <h2>พร้อมยกระดับสถานศึกษาของคุณแล้วหรือยัง?</h2>
-        <p>ทีมงานของเราพร้อมให้คำปรึกษาและออกแบบโซลูชันที่เหมาะกับความต้องการของคุณ</p>
-        <button class="btn btn-gold magnetic" data-nav="contact">ติดต่อทีมงาน</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ ABOUT VIEW ============ -->
-<section class="view" id="view-about">
-  <div class="section">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow">เกี่ยวกับเรา</span>
-        <h2>รู้จัก IWA Rich U D</h2>
-      </div>
-
-      <div class="about-hero reveal">
-        <div class="about-hero-photo"><img src="assets/img/about-team.jpg" alt="ทีมงาน IWA Rich U D"></div>
-        <div class="about-hero-body">
-          <span class="eyebrow" style="color:var(--gold-light)">OUR TEAM</span>
-          <h3>ทีมงานมืออาชีพที่พร้อมดูแลคุณ</h3>
-          <p>ทีมวิศวกรและที่ปรึกษาด้าน ICT ของเราผ่านการฝึกฝนมาโดยเฉพาะ พร้อมให้คำปรึกษาและดูแลระบบตั้งแต่ขั้นตอนออกแบบไปจนถึงบริการหลังการขาย ด้วยหัวใจบริการที่ยึดถือมาตลอด</p>
-        </div>
-      </div>
-
-      <div class="about-grid">
-        <div class="about-card exec reveal">
-          <h3>Executive Summary</h3>
-          <p>บริษัท ไอว่า ริช ยู ดี จำกัด คือผู้เชี่ยวชาญด้าน ICT Solutions ที่มุ่งเน้นการขับเคลื่อนธุรกิจด้วยเทคโนโลยี เราให้บริการตั้งแต่ออกแบบโครงสร้างพื้นฐานเครือข่าย ไปจนถึงการพัฒนาซอฟต์แวร์เฉพาะทาง</p>
-        </div>
-        <div class="about-card reveal">
-          <h3>Vision</h3>
-          <p>เป็นผู้นำด้านการสร้างสรรค์นวัตกรรมดิจิทัลที่ตอบโจทย์ธุรกิจทุกระดับอย่างยั่งยืน</p>
-        </div>
-        <div class="about-card mission reveal">
-          <h3>Mission</h3>
-          <ul>
-            <li>ส่งมอบระบบเครือข่ายที่มีเสถียรภาพและปลอดภัยสูง</li>
-            <li>พัฒนาโปรแกรมคอมพิวเตอร์ที่ใช้งานง่ายและมีประสิทธิภาพแม่นยำ</li>
-            <li>ให้บริการดูแลรักษา (Maintenance) ด้วยหัวใจบริการและทีมช่างมืออาชีพ</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="stat-strip reveal-stagger">
-        <div class="stat-box"><strong data-count="5">0</strong><span>กลุ่มบริการหลัก</span></div>
-        <div class="stat-box"><strong data-count="13" data-suffix="+">0</strong><span>สื่อการเรียนรู้ดิจิทัล</span></div>
-        <div class="stat-box"><strong data-count="6" data-suffix=" ระดับ">0</strong><span>หลักสูตร CEFR (A1–C1)</span></div>
-        <div class="stat-box"><strong data-count="100" data-suffix="%">0</strong><span>มุ่งเน้นคุณภาพบริการ</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ SERVICES VIEW ============ -->
-<section class="view" id="view-services">
-  <div class="section">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow">Our Core Services</span>
-        <h2>บริการหลักของเรา</h2>
-        <p>โซลูชัน ICT ครบวงจรสำหรับสถานศึกษาและองค์กร</p>
-      </div>
-      <div class="svc-grid reveal-stagger" id="servicesFullGrid"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ STORE VIEW ============ -->
-<section class="view" id="view-store">
-  <div class="section">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow">Digital Content Store</span>
-        <h2>ร้านค้าสื่อการเรียนรู้ดิจิทัล</h2>
-        <p>เลือกสื่อการเรียนรู้ตามระดับชั้น เพิ่มลงตะกร้าและดำเนินการสั่งซื้อได้ทันที</p>
-      </div>
-      <div class="store-banner reveal">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:2px"><path d="M12 8v5m0 3h.01M12 2 2 20h20L12 2z" stroke="#C9A227" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>ราคาที่แสดงเป็นราคาตัวอย่างสำหรับสาธิตระบบเท่านั้น กรุณาติดต่อทีมงานเพื่อขอใบเสนอราคาจริงตามจำนวนและสิทธิ์การใช้งาน · ลองใช้โค้ดส่วนลด <strong>IWASCHOOL10</strong> ที่หน้าตะกร้า</span>
-      </div>
-      <div class="store-toolbar reveal">
-        <div class="tabs" id="storeTabs">
-          <button class="tab-btn active" data-level="all">ทั้งหมด</button>
-          <button class="tab-btn" data-level="ปฐมวัย">ระดับปฐมวัย</button>
-          <button class="tab-btn" data-level="ประถมศึกษา">ระดับประถมศึกษา</button>
-          <button class="tab-btn" data-level="มัธยมศึกษา">ระดับมัธยมศึกษา</button>
-        </div>
-        <div class="search-box">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <input type="search" id="storeSearch" placeholder="ค้นหาสื่อการเรียนรู้...">
-        </div>
-      </div>
-      <div class="product-grid" id="storeGrid"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ TRAINING VIEW ============ -->
-<section class="view" id="view-training">
-  <div class="section">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow">Training &amp; Seminar</span>
-        <h2>การจัดอบรมและสัมมนา</h2>
-        <p>ทีมงานของเราลงพื้นที่จัดอบรมเชิงปฏิบัติการให้กับครูและบุคลากรทางการศึกษาอย่างต่อเนื่อง — ภาพจากกิจกรรมจริงของบริษัท คลิกที่ภาพเพื่อดูขนาดใหญ่</p>
-      </div>
-      <div class="gallery-grid" id="galleryGrid"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ CONTACT VIEW ============ -->
-<section class="view" id="view-contact">
-  <div class="section">
-    <div class="container">
-      <div class="section-head reveal">
-        <span class="eyebrow">Contact Us</span>
-        <h2>ติดต่อเรา</h2>
-        <p>ฝากข้อมูลไว้ ทีมงานของเราจะติดต่อกลับโดยเร็วที่สุด</p>
-      </div>
-      <div class="contact-grid">
-        <div class="reveal">
-          <div class="info-card">
-            <div class="info-card-photo"><img src="assets/img/contact-office.jpg" alt="สำนักงาน IWA Rich U D"></div>
-            <div class="info-card-body">
-              <div class="info-row">
-                <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 5.5A2.5 2.5 0 015.5 3H8l2 5-2.5 1.5a11 11 0 005 5L14 12l5 2v2.5A2.5 2.5 0 0116.5 19 13.5 13.5 0 013 5.5z" stroke="#16305C" stroke-width="1.5"/></svg></span>
-                <div><strong>โทรศัพท์</strong><span>099-626-9787, 082-731-8082</span></div>
-              </div>
-              <div class="info-row">
-                <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6h18v12H3V6z" stroke="#16305C" stroke-width="1.5"/><path d="M3 7l9 6 9-6" stroke="#16305C" stroke-width="1.5"/></svg></span>
-                <div><strong>อีเมล</strong><span>supannee@iwarichyoudee.com</span></div>
-              </div>
-              <div class="info-row">
-                <span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.2 7-11.5A7 7 0 105 9.5C5 14.8 12 21 12 21z" stroke="#16305C" stroke-width="1.5"/><circle cx="12" cy="9.5" r="2.4" stroke="#16305C" stroke-width="1.5"/></svg></span>
-                <div><strong>ที่อยู่</strong><span>222/56 หมู่ 7 ตำบลนิมิตรราช อำเภอบางบัวทอง จังหวัดนนทบุรี 11110</span></div>
-              </div>
-            </div>
-            <div class="map-embed">
-              <iframe src="https://www.google.com/maps?q=%E0%B8%95%E0%B8%B3%E0%B8%9A%E0%B8%A5%E0%B8%99%E0%B8%B4%E0%B8%A1%E0%B8%B4%E0%B8%95%E0%B8%A3%E0%B8%B2%E0%B8%8A%20%E0%B8%AD%E0%B8%B3%E0%B9%80%E0%B8%A0%E0%B8%AD%E0%B8%9A%E0%B8%B2%E0%B8%87%E0%B8%9A%E0%B8%B1%E0%B8%A7%E0%B8%97%E0%B8%AD%E0%B8%87%20%E0%B8%99%E0%B8%99%E0%B8%97%E0%B8%9A%E0%B8%B8%E0%B8%A3%E0%B8%B5&output=embed" loading="lazy" title="แผนที่บริษัท"></iframe>
-            </div>
-          </div>
-        </div>
-        <div class="form-card reveal">
-          <form id="contactForm" novalidate>
-            <div class="field">
-              <label for="cName">ชื่อ-นามสกุล</label>
-              <input type="text" id="cName" required placeholder="ชื่อผู้ติดต่อ">
-              <div class="field-error">กรุณากรอกชื่อ-นามสกุล</div>
-            </div>
-            <div class="field">
-              <label for="cOrg">โรงเรียน / หน่วยงาน</label>
-              <input type="text" id="cOrg" placeholder="ชื่อโรงเรียนหรือหน่วยงาน">
-            </div>
-            <div class="field">
-              <label for="cPhone">เบอร์โทรศัพท์</label>
-              <input type="tel" id="cPhone" required placeholder="08X-XXX-XXXX">
-              <div class="field-error">กรุณากรอกเบอร์โทรให้ถูกต้อง</div>
-            </div>
-            <div class="field">
-              <label for="cEmail">อีเมล</label>
-              <input type="email" id="cEmail" placeholder="you@example.com">
-              <div class="field-error">รูปแบบอีเมลไม่ถูกต้อง</div>
-            </div>
-            <div class="field">
-              <label for="cMsg">รายละเอียดที่ต้องการสอบถาม</label>
-              <textarea id="cMsg" placeholder="เช่น สนใจสอบถามระบบห้องเรียนอัจฉริยะ / ขอใบเสนอราคาสื่อ Picaro English"></textarea>
-            </div>
-            <button type="submit" class="btn btn-navy" style="width:100%">ส่งข้อความ</button>
-            <p class="form-note">เมื่อกดส่ง ระบบจะเปิดอีเมลของคุณพร้อมกรอกข้อมูลให้อัตโนมัติ เพื่อส่งถึง supannee@iwarichyoudee.com</p>
-            <div class="success-box" id="contactSuccess"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5 9-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> ส่งข้อความเรียบร้อย ทีมงานจะติดต่อกลับโดยเร็วที่สุด</div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ CART VIEW ============ -->
-<section class="view" id="view-cart">
-  <div class="section">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow">ตะกร้าสินค้า</span>
-        <h2>ตะกร้าของคุณ</h2>
-      </div>
-      <div id="cartContent"></div>
-    </div>
-  </div>
-</section>
-
+  <section class="section" id="contact">
+    <div class="container"><div class="section-head"><span class="eyebrow">CONTACT US</span><h2>ข้อมูลบริษัท</h2><p>หน้านี้ใช้สำหรับนำเสนอข้อมูลของบริษัทเท่านั้น ไม่มีฟอร์มสั่งซื้อหรือชำระเงิน</p></div><div class="contact-grid"><div class="card contact-card"><h3>บริษัท ไอว่า ริช ยู ดี จำกัด</h3><div class="info-row"><strong>ลักษณะธุรกิจ</strong><span>ICT Solutions, Software &amp; Application, Hardware &amp; Software Supply และ Digital Learning</span></div><div class="info-row"><strong>สินค้าและโซลูชัน</strong><span>สื่อการเรียนรู้ดิจิทัล หลักสูตรภาษาอังกฤษ ระบบเครือข่าย ซอฟต์แวร์ และอุปกรณ์เทคโนโลยี</span></div><div class="info-row"><strong>บริการ</strong><span>ออกแบบ ติดตั้ง ให้คำปรึกษา อบรม และบำรุงรักษาระบบ</span></div></div><div class="card contact-card"><h3>เกี่ยวกับการติดต่อ</h3><div class="info-row"><strong>จุดประสงค์ของหน้าเว็บไซต์</strong><span>แนะนำบริษัท แสดงผลงาน บริการ และรายละเอียดสินค้า เพื่อให้ผู้สนใจศึกษาข้อมูลก่อนติดต่อบริษัท</span></div><div class="info-row"><strong>สอบถามรายละเอียด</strong><span>กรุณาติดต่อผ่านช่องทางติดต่อของบริษัทที่คุณใช้งานอยู่ แล้วแจ้งชื่อสินค้าหรือบริการที่สนใจ</span></div><div class="info-row"><strong>หมายเหตุ</strong><span>เว็บไซต์นี้ไม่มีระบบสั่งซื้อออนไลน์ ตะกร้าสินค้า Checkout หรือระบบติดตามออเดอร์</span></div></div></div></div>
+  </section>
 </main>
 
-<div class="mobile-cart-cta" id="mobileCartCta">
-  <span id="mobileCartText">0 รายการในตะกร้า</span>
-  <button class="btn btn-gold btn-sm" data-nav="cart">ดูตะกร้า</button>
-</div>
+<div class="modal" id="productModal" aria-hidden="true"><div class="modal-card"><button class="modal-close" id="modalClose" aria-label="ปิด">×</button><div class="modal-grid"><img id="modalImage" src="" alt=""><div class="modal-content"><span class="tag" id="modalLevel"></span><h2 id="modalTitle"></h2><p id="modalDesc"></p><div class="modal-note">ข้อมูลนี้เป็นหน้ารายละเอียดสินค้าเท่านั้น ไม่มีปุ่มสั่งซื้อหรือชำระเงินออนไลน์</div></div></div></div></div>
 
-<button class="to-top" id="toTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="กลับขึ้นด้านบน">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-</button>
-
-<!-- ============ FOOTER ============ -->
-<footer>
-  <div class="container">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <div class="fb-logo"><img src="assets/img/logo.png" alt="IWA Rich U D logo"><h5 style="margin:0">IWA RICH U D CO., LTD.</h5></div>
-        <p>"Providing the Best ICT Technologies &amp; Striving to Serve the Best Services as Needed"</p>
-      </div>
-      <div>
-        <h5>เมนู</h5>
-        <ul>
-          <li><a href="#" data-nav="about">เกี่ยวกับเรา</a></li>
-          <li><a href="#" data-nav="services">บริการ</a></li>
-          <li><a href="#" data-nav="store">ร้านค้า</a></li>
-          <li><a href="#" data-nav="training">อบรม/สัมมนา</a></li>
-        </ul>
-      </div>
-      <div>
-        <h5>ติดต่อ</h5>
-        <ul>
-          <li>099-626-9787</li>
-          <li>082-731-8082</li>
-          <li>supannee@iwarichyoudee.com</li>
-          <li>222/56 หมู่ 7 ต.นิมิตรราช อ.บางบัวทอง จ.นนทบุรี 11110</li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>© 2026 IWA Rich U D Co., Ltd. สงวนลิขสิทธิ์</span>
-      <span>เว็บไซต์ต้นแบบสาธิตระบบ — พร้อมต่อยอดเชื่อมระบบชำระเงินจริง</span>
-    </div>
-  </div>
-</footer>
-
-<!-- ============ CHECKOUT MODAL ============ -->
-<div class="checkout-modal-overlay" id="checkoutOverlay">
-  <div class="checkout-modal">
-    <button class="close-x" id="closeCheckout" aria-label="ปิด">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    </button>
-    <div id="checkoutBody"></div>
-  </div>
-</div>
-
-<!-- ============ LIGHTBOX ============ -->
-<div class="lightbox-overlay" id="lightboxOverlay">
-  <div class="lightbox-box">
-    <button class="lightbox-close" id="lightboxClose" aria-label="ปิด">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    </button>
-    <img id="lightboxImg" src="" alt="">
-    <p class="lb-caption" id="lightboxCaption"></p>
-  </div>
-</div>
-
-<script src="assets/js/qrcode.min.js"></script>
-<script src="assets/js/promptpay.js"></script>
+<footer><div class="container"><div class="footer-grid"><div><div class="footer-brand">IWA RICH U D</div><div class="footer-small">บริษัท ไอว่า ริช ยู ดี จำกัด<br>ICT Solutions &amp; Digital Learning</div></div><div class="footer-small">เว็บไซต์สำหรับแสดงข้อมูลบริษัท บริการ และสินค้า<br>ไม่มีระบบสั่งซื้อหรือชำระเงินออนไลน์</div></div><div class="copyright">© 2026 IWA Rich U D. All rights reserved.</div></div></footer>
 <script src="assets/js/app.js"></script>
 </body>
 </html>
