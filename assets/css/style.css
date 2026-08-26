@@ -908,6 +908,23 @@ footer::before{
   .cta-band{padding:40px 24px}
 }
 
+/* ============ BROKEN IMAGE FALLBACK ============ */
+.img-broken{
+  display:flex;align-items:center;justify-content:center;
+  min-height:200px;
+  background:linear-gradient(135deg,rgba(232,196,104,.08),rgba(11,35,71,.06));
+  border:2px dashed rgba(11,35,71,.15);
+  border-radius:var(--radius-md);
+  color:var(--c-muted);
+  font-size:14px;
+  text-align:center;
+  padding:24px;
+}
+.hero-card-inner .img-broken{height:440px}
+.service-card .img-broken{height:190px}
+.product-catalog-card .img-broken{min-height:180px}
+.about-hero-photo .img-broken{min-height:300px}
+
 /* ============ PRINT ============ */
 @media print{
   .boot-loader,.scroll-progress,.to-top,.site-header,.mobile-nav{display:none!important}

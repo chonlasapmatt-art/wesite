@@ -409,5 +409,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.copyright').forEach(el=>{
     el.innerHTML=el.innerHTML.replace(/©\s*2026/,'© '+new Date().getFullYear());
   });
+
+  // Global image fallback — if any image fails to load, show a styled placeholder
+  document.addEventListener('error',function(e){
+    if(e.target.tagName!=='IMG')return;
+    if(e.target.dataset.fallback)return;
+    e.target.dataset.fallback='1';
+    e.target.classList.add('img-broken');
+    e.target.alt=e.target.alt||'รูปภาพไม่สามารถโหลดได้';
+  },true);
 });
 })();
