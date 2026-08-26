@@ -10,7 +10,8 @@ const SERVICES=[
  {title:'Software & Application Development',img:IMG+'service-software.jpg',items:['Custom Software','Mobile & Web Application','System Integration','Learning Management System (LMS)']},
  {title:'IT Maintenance Service',img:IMG+'service-maintenance.jpg',items:['บริการดูแลรักษารายเดือน-รายปี','ตรวจเช็กระบบและกู้คืนข้อมูล','ดูแลอุปกรณ์และซอฟต์แวร์']},
  {title:'Hardware & Software Supply',img:IMG+'service-hardware.jpg',items:['อุปกรณ์คอมพิวเตอร์และซอฟต์แวร์ลิขสิทธิ์','Interactive Smart Display','สื่อมัลติมีเดียเพื่อการศึกษา']},
- {title:'ICT Training & Seminar',img:IMG+'service-training.jpg',items:['อบรมการใช้งานระบบและซอฟต์แวร์','อบรม Smart Classroom / Language Lab','อบรมสื่อการเรียนรู้และ CEFR']}
+ {title:'ICT Training & Seminar',img:IMG+'service-training.jpg',items:['อบรมการใช้งานระบบและซอฟต์แวร์','อบรม Smart Classroom / Language Lab','อบรมสื่อการเรียนรู้และ CEFR']},
+ {title:'บริการพัฒนาแอปพลิเคชันและระบบอัตโนมัติด้วย AI (AI Application & Intelligent Automation)',img:IMG+'service-software.jpg',items:['พัฒนา AI Application ให้เหมาะกับความต้องการขององค์กร','ออกแบบระบบอัตโนมัติด้วย AI เพื่อลดขั้นตอนการทำงาน','เชื่อมต่อ AI เข้ากับระบบ Web / Mobile / Business Process']}
 ];
 
 const PRODUCTS=[
