@@ -24,5 +24,32 @@
 .service-card-ai{border-color:#d7c98b;background:linear-gradient(180deg,#fffdf5,#fff)}
 .service-number{color:#b18e31;font-family:'Kanit',sans-serif;font-size:12px;line-height:1;letter-spacing:1px;margin-top:14px}
 .modal-source{margin-top:15px;border:0;background:#16305c;color:#fff;padding:11px 15px;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;font-weight:700}
+
+/* Restore the original header/navigation feel without changing the catalog system. */
+.site-header{background:rgba(14,33,68,.96)!important;border-bottom:1px solid rgba(255,255,255,.08)!important;box-shadow:0 8px 30px rgba(0,0,0,.16)}
+.site-header .brand{color:#fff!important}.site-header .brand-name{color:#fff!important}.site-header .brand-name small{color:#e8c468!important}
+.site-header .brand-mark{border-radius:50%!important;background:#fff!important}
+.site-header .main-nav{display:flex!important;align-items:center!important;gap:2px!important}
+.site-header .main-nav button{color:rgba(255,255,255,.82)!important;background:transparent!important;border:0!important;padding:10px 15px!important;border-radius:999px!important;font-weight:600!important}
+.site-header .main-nav button:hover,.site-header .main-nav button.active{color:#e8c468!important;background:rgba(255,255,255,.07)!important}
+.site-header .mobile-nav{background:#0e2144!important;border-color:rgba(255,255,255,.08)!important}
+.site-header .mobile-nav button{color:rgba(255,255,255,.86)!important}
+.site-header .burger{background:transparent!important;border-color:rgba(255,255,255,.16)!important;color:#fff!important}
+.site-header .burger .bl{background:#fff!important}
+
+/* Restore the first hero composition: three floating circular images with motion. */
+.hero-card{position:relative!important;min-height:500px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important}
+.hero-card img{position:absolute!important;left:50%!important;top:50%!important;width:235px!important;height:235px!important;min-height:0!important;object-fit:cover!important;border-radius:50%!important;border:7px solid rgba(255,255,255,.16)!important;box-shadow:0 22px 55px rgba(0,0,0,.32)!important;transform:translate(-50%,-50%) rotate(-6deg)!important;z-index:3!important;animation:iwaFloatMain 6.5s ease-in-out infinite!important}
+.hero-card::before,.hero-card::after{content:'';position:absolute!important;width:190px;height:190px;border-radius:50%;background-size:cover;background-position:center;box-shadow:0 20px 50px rgba(0,0,0,.26);border:6px solid rgba(255,255,255,.14);z-index:2}
+.hero-card::before{left:5%;top:12%;background-image:url('../img/hero-analytics.jpg');animation:iwaFloatLeft 7s ease-in-out infinite}
+.hero-card::after{right:4%;bottom:10%;background-image:url('../img/hero-laptops.jpg');animation:iwaFloatRight 7.5s ease-in-out infinite}
+.hero-card::marker{display:none}
+@keyframes iwaFloatMain{0%,100%{transform:translate(-50%,-50%) rotate(-6deg) translateY(0)}50%{transform:translate(-50%,-50%) rotate(2deg) translateY(-14px)}}
+@keyframes iwaFloatLeft{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translate(12px,-13px) rotate(-2deg)}}
+@keyframes iwaFloatRight{0%,100%{transform:translateY(0) rotate(8deg)}50%{transform:translate(-10px,-16px) rotate(1deg)}}
+.hero-card::selection{background:transparent}
+
 @media(max-width:980px){.product-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product-category-head{align-items:flex-start;flex-direction:column}.product-count{display:none}}
-@media(max-width:620px){.product-category-grid{grid-template-columns:1fr}.product-category-head h3{font-size:26px}.product-actions{flex-direction:column}.product-media img{height:230px}}
+@media(max-width:920px){.site-header .main-nav{display:none!important}.hero-card{min-height:430px!important}.hero-card img{width:205px!important;height:205px!important}.hero-card::before,.hero-card::after{width:165px;height:165px}}
+@media(max-width:620px){.product-category-grid{grid-template-columns:1fr}.product-category-head h3{font-size:26px}.product-actions{flex-direction:column}.product-media img{height:230px}.hero-card{min-height:350px!important}.hero-card img{width:170px!important;height:170px!important}.hero-card::before,.hero-card::after{width:135px;height:135px}.hero-card::before{left:0;top:10%}.hero-card::after{right:0;bottom:8%}}
+@media(prefers-reduced-motion:reduce){.hero-card img,.hero-card::before,.hero-card::after{animation:none!important}}
