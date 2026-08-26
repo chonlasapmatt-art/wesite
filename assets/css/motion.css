@@ -1,0 +1,120 @@
+/* ============================================================
+   IWA RICH YOU D — Motion System
+   Scroll reveal, hover effects, transitions
+   ============================================================ */
+
+/* Scroll Reveal */
+.iwa-reveal {
+  opacity: 0;
+  transform: translateY(24px) scale(.985);
+  filter: blur(3px);
+  transition: opacity .72s var(--ease-out), transform .72s var(--ease-out), filter .72s ease;
+  transition-delay: var(--iwa-delay, 0ms);
+}
+.iwa-reveal.iwa-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* Button ripple */
+.iwa-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.38);
+  transform: scale(0);
+  pointer-events: none;
+  animation: iwaRipple .6s ease-out forwards;
+}
+@keyframes iwaRipple {
+  to { transform: scale(1); opacity: 0; }
+}
+
+/* Hero card 3D parallax */
+.hero-card {
+  transform: translate3d(var(--mx, 0), var(--my, 0), 0);
+  transition: transform .4s cubic-bezier(.2,.8,.2,1);
+}
+
+/* Card 3D tilt */
+.product-catalog-card,
+.svc-card,
+.info-card {
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+.product-catalog-card:hover,
+.svc-card:hover,
+.info-card:hover {
+  box-shadow: var(--shadow-lift);
+}
+
+/* Section divider */
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(900px, 74%);
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(201,162,39,.22), transparent);
+}
+
+/* Section heading underline */
+.section-head h2 {
+  position: relative;
+  display: inline-block;
+}
+.section-head h2::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -13px;
+  width: 48px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #c9a227, #e8c468);
+  transform: translateX(-50%);
+}
+
+/* Button hover enhancements */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary {
+  transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
+}
+.btn-primary:hover {
+  transform: translateY(-3px);
+  filter: saturate(1.08);
+  box-shadow: 0 17px 34px rgba(201,162,39,.31);
+}
+.btn-outline:hover,
+.btn-ghost:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0,0,0,.1);
+}
+
+/* Footer glow */
+footer::before {
+  content: '';
+  position: absolute;
+  inset: -30% -10% auto;
+  height: 260px;
+  background: radial-gradient(circle at 50% 0, rgba(232,196,104,.08), transparent 60%);
+  pointer-events: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .iwa-reveal,
+  .product-catalog-card,
+  .svc-card,
+  .info-card {
+    animation: none !important;
+    transition: none !important;
+  }
+  .iwa-reveal { opacity: 1; transform: none; filter: none; }
+}
