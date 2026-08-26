@@ -718,7 +718,7 @@ header,main,footer{transition:opacity .8s var(--ease-out),transform .8s var(--ea
 }
 .source-btn:hover{background:var(--paper-alt);color:var(--navy-deep)}
 
-.service-card-ai{border-color:rgba(201,162,39,.35);background:linear-gradient(180deg,#fffdf5,#fff)}
+/* service-card-ai removed - merged into Software */
 .service-number{color:var(--gold);font-family:var(--font-display);font-size:0.78rem;letter-spacing:1px;margin-top:14px}
 
 @media(max-width:980px){.product-category-grid{grid-template-columns:repeat(2,1fr)}}
