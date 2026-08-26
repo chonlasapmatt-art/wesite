@@ -1,0 +1,28 @@
+/* IWA RICH U D — Product Catalog enhancement */
+.product-category{margin-top:58px}.product-category:first-child{margin-top:0}
+.product-category-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:0 2px 18px;border-bottom:1px solid rgba(22,48,92,.14);margin-bottom:22px}
+.product-category-head .eyebrow{margin-bottom:7px}
+.product-category-head h3{font-family:'Kanit',sans-serif;font-size:30px;line-height:1.25;color:#0e2144;margin:0 0 7px}
+.product-category-head p{color:#667085;margin:0;line-height:1.8;max-width:720px}
+.product-count{flex:none;border:1px solid #dbe2ec;background:#f8fafc;color:#5d6c82;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:700}
+.product-category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.product-catalog-card{display:flex;flex-direction:column;min-width:0;transition:transform .22s ease,box-shadow .22s ease;border-radius:20px;overflow:hidden;border:1px solid rgba(22,48,92,.12);background:#fff;box-shadow:0 12px 32px rgba(20,36,64,.07)}
+.product-catalog-card:hover{transform:translateY(-4px);box-shadow:0 22px 65px rgba(20,36,64,.13)}
+.product-media{position:relative;background:linear-gradient(145deg,#f8fafc,#eef3f9);overflow:hidden}
+.product-media img{width:100%;height:235px;object-fit:cover;display:block;transition:transform .35s ease}
+.product-catalog-card:hover .product-media img{transform:scale(1.035)}
+.product-pill{position:absolute;left:14px;top:14px;padding:7px 11px;border-radius:999px;background:rgba(14,33,68,.9);color:#fff;font-size:12px;font-weight:700;backdrop-filter:blur(5px)}
+.product-catalog-card .product-body{padding:20px;display:flex;flex-direction:column;flex:1}
+.product-catalog-card .product-body h3{font-family:'Kanit',sans-serif;font-size:20px;line-height:1.42;margin:0 0 9px;color:#16305c}
+.product-catalog-card .product-body p{margin:0;color:#667085;line-height:1.75;flex:1}
+.product-actions{display:flex;gap:10px;margin-top:17px}
+.product-actions .detail-btn,.product-actions .source-btn{margin:0;flex:1;min-width:0;text-align:center;justify-content:center}
+.detail-btn{border:1px solid #d8e0ea;background:#fff;color:#16305c;padding:10px 13px;border-radius:10px;cursor:pointer;font-weight:700}
+.detail-btn:hover{background:#f3f6fa}
+.source-btn{border:1px solid #d8e0ea;background:#f8fafc;color:#52627a;padding:10px 13px;border-radius:10px;text-decoration:none;font-size:14px;font-weight:700;display:inline-flex;align-items:center}
+.source-btn:hover{background:#eef3f8;color:#16305c}
+.service-card-ai{border-color:#d7c98b;background:linear-gradient(180deg,#fffdf5,#fff)}
+.service-number{color:#b18e31;font-family:'Kanit',sans-serif;font-size:12px;line-height:1;letter-spacing:1px;margin-top:14px}
+.modal-source{margin-top:15px;border:0;background:#16305c;color:#fff;padding:11px 15px;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;font-weight:700}
+@media(max-width:980px){.product-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product-category-head{align-items:flex-start;flex-direction:column}.product-count{display:none}}
+@media(max-width:620px){.product-category-grid{grid-template-columns:1fr}.product-category-head h3{font-size:26px}.product-actions{flex-direction:column}.product-media img{height:230px}}
