@@ -537,7 +537,7 @@ header,main,footer{transition:opacity .8s var(--ease-out),transform .8s var(--ea
   box-shadow:var(--shadow-card);margin-bottom:56px;
   background:var(--navy);
 }
-.about-hero-photo{position:relative;min-height:340px;overflow:hidden}
+.about-hero-photo{position:relative;min-height:340px;overflow:hidden;display:flex}
 .about-hero-photo img{
   width:100%;height:100%;object-fit:cover;position:absolute;inset:0;
   transition:transform 8s ease;
@@ -557,6 +557,7 @@ header,main,footer{transition:opacity .8s var(--ease-out),transform .8s var(--ea
 @media(max-width:800px){
   .about-hero{grid-template-columns:1fr}
   .about-hero-photo{min-height:220px}
+  .about-hero-photo img{position:relative;height:auto;min-height:220px}
 }
 
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
@@ -590,7 +591,7 @@ header,main,footer{transition:opacity .8s var(--ease-out),transform .8s var(--ea
   position:relative;
 }
 .svc-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lift);border-color:var(--line-hover)}
-.svc-photo{height:140px;position:relative;overflow:hidden}
+.svc-photo{aspect-ratio:16/9;position:relative;overflow:hidden}
 .svc-photo img{
   width:100%;height:100%;object-fit:cover;
   transition:transform .5s var(--ease-out);
@@ -665,10 +666,10 @@ header,main,footer{transition:opacity .8s var(--ease-out),transform .8s var(--ea
 }
 .product-catalog-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lift)}
 
-.product-media{position:relative;background:linear-gradient(145deg,var(--paper),var(--paper-alt));overflow:hidden}
+.product-media{position:relative;background:linear-gradient(145deg,var(--paper),var(--paper-alt));overflow:hidden;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
 .product-media img{
-  width:100%;height:220px;object-fit:cover;display:block;
-  transition:transform .5s var(--ease-out);
+  width:100%;height:100%;object-fit:contain;display:block;
+  transition:transform .5s var(--ease-out);padding:8px;
 }
 .product-catalog-card:hover .product-media img{transform:scale(1.04)}
 .product-pill{
@@ -712,7 +713,8 @@ header,main,footer{transition:opacity .8s var(--ease-out),transform .8s var(--ea
   .product-category-head{flex-direction:column;align-items:flex-start}
   .product-count{display:none}
   .product-actions{flex-direction:column}
-  .product-media img{height:200px}
+  .product-media{aspect-ratio:16/10}
+.product-media img{height:100%}
 }
 
 /* ============ MODAL ============ */
@@ -789,7 +791,7 @@ header,main,footer{transition:opacity .8s var(--ease-out),transform .8s var(--ea
   transition:transform .28s var(--ease-out),box-shadow .28s var(--ease-out);
 }
 .info-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lift)}
-.info-card-photo{height:170px;position:relative;overflow:hidden}
+.info-card-photo{aspect-ratio:16/9;position:relative;overflow:hidden}
 .info-card-photo img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
 .info-card:hover .info-card-photo img{transform:scale(1.05)}
 .info-card-body{padding:28px}
